@@ -1,0 +1,40 @@
+{
+  "brand": {
+    "airline": "SDG Airlines",
+    "division": "Air Cargo Division",
+    "operator": "Escola Europea – Intermodal Transport",
+    "programme": "Port Virtual Lab",
+    "disclaimer": "Educational simulation · Not for commercial use"
+  },
+  "base_currency": "EUR",
+  "currencies": {
+    "EUR": { "symbol": "€", "label": "Euro", "rate_from_base": 1.0 },
+    "USD": { "symbol": "$", "label": "US Dollar", "rate_from_base": 1.08 }
+  },
+  "volumetric_factor": 167,
+  "chargeable_weight_rounding": 0.5,
+  "storage": {
+    "unit_kg": 100,
+    "tier_1_last_day": 20
+  },
+  "cargo_types": [
+    { "id": "GEN", "label": "General Cargo", "thc": "gen", "storage": "gen" },
+    { "id": "DGR", "label": "Dangerous Goods (DGR)", "thc": "dg", "storage": "dg" },
+    { "id": "PHA", "label": "Pharma", "thc": "pha", "storage": "cool" },
+    { "id": "PER", "label": "Perishable / Temperature Controlled", "thc": "pha", "storage": "cool" },
+    { "id": "VAL", "label": "Valuable / Vulnerable Goods", "thc": "gen", "storage": "gen" }
+  ],
+  "quote": {
+    "reference_prefix": "SDG",
+    "validity_days": 15
+  },
+  "data_source": {
+    "mode": "local",
+    "sheet_id": "1gOVYF-CoBiaGt3JmyMOuczZq_H0CUIAXmNQJ5vD0QVc",
+    "sheets": {
+      "airports": "airports",
+      "arrival_charges": "arrival_charges",
+      "routes": "routes"
+    }
+  }
+}

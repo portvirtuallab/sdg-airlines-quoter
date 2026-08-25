@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDG Airlines — Cotizador de carga aérea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ SDG Airlines — sistema visual compartido ══════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --blue:#0057B8; --blue-dk:#003F88; --blue-xdk:#001F45;
+  --blue-lt:#E8F1FB; --blue-mid:#C2D8F5;
+  --gold:#E8A020; --gold-lt:#FEF3DC;
+  --red:#C8391A; --green:#1A7A44; --green-lt:#E4F5EC;
+  --ink:#0A0F1A; --ink-mid:#3A4455; --ink-soft:#7A8799;
+  --rule:#D0D8E4; --rule-dk:#B0BDD0;
+  --bg:#F4F6F9; --white:#fff;
+  --wrap:1060px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+a{color:inherit}
+
+/* ── barra superior ── */
+.topbar{background:var(--blue-xdk);height:44px;display:flex;align-items:center;padding:0 40px;gap:20px;position:sticky;top:0;z-index:100}
+.topbar-brand{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:10px;text-decoration:none}
+.topbar-brand::before{content:'✈';font-size:14px;color:var(--gold)}
+.topbar-sep{width:1px;height:18px;background:rgba(255,255,255,.15)}
+.topbar-sub{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.12em;text-transform:uppercase}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tb-pill{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.45)}
+.tb-pill.sim{background:var(--gold);border-color:var(--gold);color:var(--blue-xdk);font-weight:500}
+.tb-pill.live{background:var(--green-lt);border-color:var(--green);color:var(--green);font-weight:500}
+
+/* ── cabecera ── */
+.hero{background:var(--blue);padding:0 40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(-55deg,transparent 0,transparent 22px,rgba(255,255,255,.03) 22px,rgba(255,255,255,.03) 24px)}
+.hero-inner{max-width:var(--wrap);margin:0 auto;padding:32px 0;position:relative}
+.hero-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.hero-h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(34px,5vw,50px);font-weight:900;line-height:.92;color:#fff;text-transform:uppercase}
+.hero-h1 .stripe{color:var(--gold)}
+.hero-meta{margin-top:18px;display:flex;border:1px solid rgba(255,255,255,.15);border-radius:3px;overflow:hidden;width:fit-content;flex-wrap:wrap}
+.hm-cell{padding:8px 16px;border-right:1px solid rgba(255,255,255,.15);display:flex;flex-direction:column;gap:2px}
+.hm-cell:last-child{border-right:none}
+.hm-l{font-family:'DM Mono',monospace;font-size:8px;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase}
+.hm-v{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:#fff}
+.hm-v.gold{color:var(--gold)}
+.hm-v.ok{color:#6DDDA0}
+
+/* ── cuerpo ── */
+.wrap{max-width:var(--wrap);margin:0 auto;padding:28px 40px 80px}
+.sec-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--blue)}
+.sec-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#fff;background:var(--blue);padding:2px 8px;border-radius:2px;letter-spacing:.08em}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue-dk);letter-spacing:.12em;text-transform:uppercase}
+.form-section{margin-bottom:26px}
+
+/* ── formularios ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule-dk);border-radius:4px;overflow:hidden;background:#fff}
+.grid .field{padding:14px 18px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.grid .field:nth-child(2n){border-right:none}
+.grid .field.full{grid-column:1/-1;border-right:none}
+.field label{display:block;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-soft);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.req{color:var(--red)}
+.field select,.field input{width:100%;padding:8px 10px;border:1px solid var(--rule-dk);border-radius:3px;background:var(--bg);color:var(--ink);font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;appearance:none;-webkit-appearance:none}
+.field select:focus,.field input:focus{outline:2px solid var(--blue);outline-offset:1px;background:var(--blue-lt)}
+.hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-soft);margin-top:5px;letter-spacing:.06em}
+
+/* ── piezas ── */
+.pieces{border:1px solid var(--rule-dk);border-radius:4px;background:#fff;overflow:hidden}
+.piece-row{display:grid;grid-template-columns:.8fr 1fr .8fr .8fr .8fr 40px;gap:10px;padding:12px 18px;border-bottom:1px solid var(--rule);align-items:end}
+.piece-row:last-of-type{border-bottom:none}
+.piece-row .field{padding:0;border:none}
+.btn-mini{height:34px;border:1px solid var(--rule-dk);background:var(--bg);border-radius:3px;cursor:pointer;font-size:15px;color:var(--ink-soft);line-height:1}
+.btn-mini:hover{background:var(--blue-lt);color:var(--blue);border-color:var(--blue)}
+.pieces-foot{padding:12px 18px;background:var(--blue-lt);border-top:1px solid var(--blue-mid);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.cp{display:flex;flex-direction:column;gap:2px}
+.cp-l{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-soft);letter-spacing:.12em;text-transform:uppercase}
+.cp-v{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--blue-dk)}
+.cp-v.hi{color:var(--blue);font-weight:700}
+
+/* ── botón principal ── */
+.btn-calc{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:56px;margin:22px 0;background:var(--blue);color:#fff;border:none;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px rgba(0,63,136,.25);transition:background .2s,transform .2s}
+.btn-calc:hover{background:var(--blue-dk);transform:translateY(-1px)}
+.btn-calc .ico{transition:transform .35s}
+.btn-calc:hover .ico{transform:translateX(6px) translateY(-3px)}
+
+/* ── resultado ── */
+.res{display:none;margin-top:30px}
+.res.on{display:block}
+.res-head{background:var(--blue-xdk);padding:22px 28px;border-radius:4px 4px 0 0;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.res-route{font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:900;color:var(--gold);line-height:1}
+.res-sub{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.res-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-family:'DM Mono',monospace;font-size:9px;padding:3px 10px;border-radius:2px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55);letter-spacing:.08em;text-transform:uppercase}
+.res-actions{display:flex;flex-direction:column;gap:8px}
+.btn-ghost{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:9px 18px;border-radius:3px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;white-space:nowrap}
+.btn-ghost:hover{background:rgba(255,255,255,.08);color:#fff}
+
+.bk{background:#fff;border:1px solid var(--rule-dk);border-top:none;overflow-x:auto}
+table.bk-t{width:100%;border-collapse:collapse}
+.bk-t thead tr{background:var(--bg);border-bottom:2px solid var(--rule-dk)}
+.bk-t th{padding:10px 20px;font-family:'DM Mono',monospace;font-size:9px;font-weight:400;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.14em;text-align:left}
+.bk-t th:last-child,.bk-t td:last-child{text-align:right}
+.bk-t tbody tr{border-bottom:1px solid var(--rule)}
+.bk-t tbody tr:hover{background:var(--blue-lt)}
+.bk-t td{padding:12px 20px;vertical-align:middle}
+.c-name{font-size:13px;font-weight:600}
+.c-detail{font-family:'DM Mono',monospace;font-size:10px;font-weight:300;color:var(--ink-soft);margin-top:3px}
+.c-code{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:2px 6px;margin-right:8px}
+.amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
+.divider td{background:var(--bg)!important;padding:7px 20px!important;border-top:2px solid var(--blue)!important;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--blue-dk);letter-spacing:.1em;text-transform:uppercase}
+.sub-row{background:rgba(0,87,184,.06)}
+.sub-row td{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--blue-dk);letter-spacing:.06em;text-transform:uppercase}
+.total-row{background:var(--blue-xdk)}
+.total-row td{padding:18px 20px}
+.total-l{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:.08em;text-transform:uppercase}
+.total-a{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--gold)}
+
+.notice{padding:14px 20px;background:var(--blue-lt);border-top:1px solid var(--blue-mid);border-radius:0 0 4px 4px}
+.notice-t{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;color:var(--blue);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.notice-x{font-size:12px;color:var(--ink-mid);line-height:1.55}
+.warn{padding:12px 20px;background:var(--gold-lt);border-left:4px solid var(--gold);font-size:12px;color:var(--ink-mid);line-height:1.5}
+.warn strong{display:block;color:var(--ink)}
+.err{padding:12px 20px;background:#FDECE8;border-left:4px solid var(--red);font-size:13px;color:var(--ink-mid)}
+
+/* ── tarjetas del vestíbulo ── */
+.cards{display:flex;gap:20px;flex-wrap:wrap;max-width:var(--wrap);margin:0 auto;padding:36px 40px 0}
+.card{flex:1;min-width:280px;background:#fff;border:1px solid var(--rule);border-radius:6px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s,border-color .25s}
+.card:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(0,63,136,.16);border-color:var(--blue)}
+.card-bar{height:4px;background:var(--blue)}
+.card-bar.gold{background:var(--gold)}
+.card-body{padding:26px 26px 22px;flex:1}
+.card-icon{width:46px;height:46px;border-radius:10px;background:var(--blue-lt);border:1px solid rgba(0,87,184,.15);display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:18px}
+.card-icon.gold-bg{background:var(--gold-lt);border-color:rgba(232,160,32,.25)}
+.card-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-soft);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--blue-xdk);text-transform:uppercase;line-height:1;margin-bottom:10px}
+.card-desc{font-size:13px;color:var(--ink-soft);line-height:1.55}
+.card-foot{padding:13px 26px;border-top:1px solid var(--rule);background:var(--bg);display:flex;justify-content:space-between;align-items:center}
+.tag{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;background:#fff;border:1px solid var(--rule);color:var(--ink-soft);margin-right:6px}
+.card-cta{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+
+footer{background:var(--blue-xdk);padding:16px 40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:40px}
+.f-brand{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase}
+.f-note{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase}
+
+@media(max-width:720px){
+  .topbar,.hero,footer{padding-left:18px;padding-right:18px}
+  .tb-pill:not(.sim):not(.live){display:none}
+  .wrap,.cards{padding-left:18px;padding-right:18px}
+  .grid{grid-template-columns:1fr}
+  .grid .field{border-right:none}
+  .piece-row{grid-template-columns:1fr 1fr;gap:8px}
+  .res-head{grid-template-columns:1fr}
+}
+@media print{
+  .topbar,.hero,.form-section,.btn-calc,.pieces,footer,.btn-ghost,.res-actions{display:none!important}
+  .res{display:block!important;margin:0}
+  body{background:#fff}
+  .res-head{background:#001F45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="topbar-brand" href="?" target="_top">SDG Airlines</a>
+  <div class="topbar-sep"></div>
+  <div class="topbar-sub">Cotizador de carga aérea</div>
+  <div class="topbar-right">
+    <div class="tb-pill" id="stat-source">datos del repo</div>
+    <div class="tb-pill sim">⬡ Simulación</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Origen a destino, todo en una pantalla</div>
+    <h1 class="hero-h1">Cotización<br><span class="stripe">completa</span></h1>
+    <div class="hero-meta">
+      <div class="hm-cell"><span class="hm-l">Red</span><span class="hm-v" id="stat-airports">—</span></div>
+      <div class="hm-cell"><span class="hm-l">Tarifas de</span><span class="hm-v gold" id="stat-updated">—</span></div>
+      <div class="hm-cell"><span class="hm-l">Incluye</span><span class="hm-v">Flete · THC · Llegada</span></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section class="form-section">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Ruta y envío</span></div>
+    <div class="grid">
+      <div class="field">
+        <label for="origin">Aeropuerto de origen <span class="req">*</span></label>
+        <select id="origin"></select>
+      </div>
+      <div class="field">
+        <label for="destination">Aeropuerto de destino <span class="req">*</span></label>
+        <select id="destination"></select>
+        <div class="hint">Los cargos de llegada se calculan con la tarifa de este aeropuerto</div>
+      </div>
+      <div class="field">
+        <label for="cargoType">Naturaleza de la mercancía <span class="req">*</span></label>
+        <select id="cargoType"></select>
+      </div>
+      <div class="field">
+        <label for="currency">Moneda</label>
+        <select id="currency"></select>
+      </div>
+      <div class="field">
+        <label for="mawbs">Número de MAWB</label>
+        <input type="number" id="mawbs" value="1" min="1" step="1">
+      </div>
+      <div class="field">
+        <label for="cwOverride">Forzar peso facturable (kg)</label>
+        <input type="number" id="cwOverride" min="0" step="0.5" placeholder="vacío = se calcula solo">
+        <div class="hint">Úsalo sólo si el handling te da otro peso</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Bultos y dimensiones</span></div>
+    <div class="pieces" id="pieces">
+      <div class="pieces-foot" id="pieces-foot">
+        <button class="btn-mini" type="button" id="addPiece" style="width:auto;padding:0 14px">+ Añadir línea</button>
+        <div class="cp"><span class="cp-l">Peso real</span><span class="cp-v" id="w-gross">—</span></div>
+        <div class="cp"><span class="cp-l">Peso volumétrico</span><span class="cp-v" id="w-vol">—</span></div>
+        <div class="cp"><span class="cp-l">Peso facturable</span><span class="cp-v hi" id="w-cw">—</span></div>
+        <div class="cp"><span class="cp-l">Manda</span><span class="cp-v" id="w-basis">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Servicios en destino</span></div>
+    <div class="grid">
+      <div class="field">
+        <label for="handling">Tipo de manipulación <span class="req">*</span></label>
+        <select id="handling">
+          <option value="Bulk">Granel — carga suelta</option>
+          <option value="ULD">ULD — unidad de carga</option>
+        </select>
+      </div>
+      <div class="field" id="uldField">
+        <label for="ulds">Número de ULD</label>
+        <input type="number" id="ulds" value="1" min="1" step="1">
+      </div>
+      <div class="field">
+        <label for="customs">Despacho de aduana</label>
+        <select id="customs">
+          <option value="yes">Sí — aplica aduana y documentos</option>
+          <option value="no">No hace falta</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="storageDays">Días en almacén en destino</label>
+        <input type="number" id="storageDays" value="0" min="0" step="1">
+        <div class="hint">Los días libres del aeropuerto se descuentan solos</div>
+      </div>
+    </div>
+  </section>
+
+  <button class="btn-calc" id="calc" type="button"><span class="ico">✈</span> Calcular cotización</button>
+
+  <section class="res" id="res">
+    <div class="res-head">
+      <div>
+        <div class="res-route" id="res-route"></div>
+        <div class="res-sub" id="res-sub"></div>
+        <div class="res-chips" id="res-chips"></div>
+      </div>
+      <div class="res-actions">
+        <button class="btn-ghost" id="print" type="button">Imprimir</button>
+        <button class="btn-ghost" id="csv" type="button">Descargar CSV</button>
+      </div>
+    </div>
+    <div id="res-error"></div>
+    <div class="bk">
+      <table class="bk-t">
+        <thead><tr><th>Concepto</th><th>Importe</th></tr></thead>
+        <tbody id="bk-body"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td><span class="total-l">Total de la cotización</span></td>
+            <td style="text-align:right"><span class="total-a" id="res-total"></span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="notice">
+      <div class="notice-t">Qué no incluye</div>
+      <div class="notice-x">Transporte terrestre, entrega a domicilio, derechos de importación, IVA e impuestos aduaneros quedan fuera. El transporte terrestre se cotiza aparte con nuestra empresa asociada.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="f-brand">SDG Airlines · Air Cargo Division · Escola Europea · Port Virtual Lab</div>
+  <div class="f-note">Simulación educativa · Sin uso comercial</div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   SDG Airlines — motor de cálculo
+   Sin DOM, sin dependencias. Funciona en navegador y en Apps Script.
+   Toda la aritmética vive aquí; la interfaz sólo pinta el resultado.
+   ══════════════════════════════════════════════════════════════ */
+(function (root) {
+  "use strict";
+
+  var BREAKS = [100, 300, 500];
+
+  function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+
+  function ceilTo(n, step) {
+    if (!step) return n;
+    return Math.ceil((n - 1e-9) / step) * step;
+  }
+
+  /* ── Peso facturable ────────────────────────────────────────
+     piezas: [{ qty, weightKg, l, w, h }]  (dimensiones en cm)     */
+  function chargeableWeight(pieces, volumetricFactor, rounding) {
+    var vf = volumetricFactor || 167;
+    var gross = 0, volumetric = 0;
+    (pieces || []).forEach(function (p) {
+      var qty = Number(p.qty) || 0;
+      gross += qty * (Number(p.weightKg) || 0);
+      var l = Number(p.l) || 0, w = Number(p.w) || 0, h = Number(p.h) || 0;
+      if (l && w && h) volumetric += qty * ((l * w * h) / vf);
+    });
+    var cw = Math.max(gross, volumetric);
+    return {
+      gross: round2(gross),
+      volumetric: round2(volumetric),
+      chargeable: round2(ceilTo(cw, rounding || 0)),
+      basis: volumetric > gross ? "volumen" : "peso real"
+    };
+  }
+
+  /* ── Búsqueda de tarifa de flete ────────────────────────────
+     Prioridad: par O/D exacto → comodín "*" hacia el destino.     */
+  function findRoute(data, origin, destination) {
+    var r = data.routes || {};
+    if (r[origin] && r[origin][destination]) {
+      return { rate: r[origin][destination], source: "acuerdo " + origin + "–" + destination };
+    }
+    if (r["*"] && r["*"][destination]) {
+      return { rate: r["*"][destination], source: "tarifa general a " + destination };
+    }
+    return null;
+  }
+
+  function rateForWeight(rate, kg) {
+    if (kg >= 500) return { perKg: rate.r500, band: "+500 kg" };
+    if (kg >= 300) return { perKg: rate.r300, band: "300–499 kg" };
+    if (kg >= 100) return { perKg: rate.r100, band: "100–299 kg" };
+    return { perKg: rate.r0, band: "menos de 100 kg" };
+  }
+
+  /* Salto de tramo (weight break): si facturar al siguiente escalón
+     sale más barato, se factura a ese peso. Es práctica IATA real. */
+  function bestFreight(rate, cw) {
+    var direct = rateForWeight(rate, cw);
+    var best = {
+      billedWeight: cw,
+      perKg: direct.perKg,
+      band: direct.band,
+      amount: Math.max(rate.min, direct.perKg * cw),
+      weightBreak: false
+    };
+    BREAKS.forEach(function (b) {
+      if (b <= cw) return;
+      var r = rateForWeight(rate, b);
+      var amount = Math.max(rate.min, r.perKg * b);
+      if (amount < best.amount - 0.005) {
+        best = { billedWeight: b, perKg: r.perKg, band: r.band, amount: amount, weightBreak: true };
+      }
+    });
+    best.amount = round2(best.amount);
+    best.minApplied = best.amount <= rate.min + 0.005;
+    return best;
+  }
+
+  /* ── Fase 1: flete + THC en origen ──────────────────────────── */
+  function freightQuote(data, input) {
+    var lines = [];
+    var found = findRoute(data, input.origin, input.destination);
+    if (!found) {
+      return { error: "No hay tarifa publicada para " + input.origin + " → " + input.destination };
+    }
+    var rate = found.rate;
+    var cw = Number(input.chargeableWeight) || 0;
+    var mawbs = Math.max(1, Number(input.mawbs) || 1);
+    var fr = bestFreight(rate, cw);
+
+    lines.push({
+      code: "FRT",
+      label: "Flete aéreo",
+      detail: found.source + " · " + fr.band + " a " + fr.perKg.toFixed(3) + "/kg" +
+        (fr.weightBreak ? " · facturado a " + fr.billedWeight + " kg por salto de tramo" : "") +
+        (fr.minApplied ? " · mínimo aplicado" : ""),
+      amount: fr.amount
+    });
+
+    if (rate.fsc) {
+      lines.push({
+        code: "FSC",
+        label: "Recargo de combustible",
+        detail: rate.fsc.toFixed(3) + "/kg × " + fr.billedWeight + " kg",
+        amount: round2(rate.fsc * fr.billedWeight)
+      });
+    }
+    if (rate.ssc) {
+      lines.push({
+        code: "SSC",
+        label: "Recargo de seguridad",
+        detail: rate.ssc.toFixed(3) + "/kg × " + fr.billedWeight + " kg",
+        amount: round2(rate.ssc * fr.billedWeight)
+      });
+    }
+
+    // THC en salida: se usa la tabla del aeropuerto de origen.
+    var org = data.arrival_charges[input.origin];
+    if (org) {
+      var fam = thcFamily(data, input.cargoType);
+      var min = org["thc_" + fam + "_min"], per = org["thc_" + fam + "_rate"];
+      lines.push({
+        code: "THC-DEP",
+        label: "THC en origen (" + famLabel(fam) + ")",
+        detail: "máx(" + min.toFixed(2) + " , " + per.toFixed(3) + "/kg × " + cw + " kg)",
+        amount: round2(Math.max(min, per * cw))
+      });
+    }
+
+    lines.push({
+      code: "AWB",
+      label: "Emisión de AWB",
+      detail: mawbs + " MAWB",
+      amount: round2(25 * mawbs)
+    });
+
+    return {
+      origin: input.origin,
+      destination: input.destination,
+      chargeableWeight: cw,
+      billedWeight: fr.billedWeight,
+      transitDays: rate.transit || null,
+      lines: lines,
+      subtotal: round2(lines.reduce(function (s, l) { return s + l.amount; }, 0))
+    };
+  }
+
+  function thcFamily(data, cargoTypeId) {
+    var t = (data.config.cargo_types || []).filter(function (c) { return c.id === cargoTypeId; })[0];
+    return t ? t.thc : "gen";
+  }
+  function storageFamily(data, cargoTypeId) {
+    var t = (data.config.cargo_types || []).filter(function (c) { return c.id === cargoTypeId; })[0];
+    return t ? t.storage : "gen";
+  }
+  function famLabel(f) {
+    return { gen: "carga general", dg: "mercancías peligrosas", pha: "farma / temperatura", cool: "cámara de frío" }[f] || f;
+  }
+
+  /* ── Fase 2: cargos de llegada en destino ───────────────────── */
+  function arrivalQuote(data, input) {
+    var t = data.arrival_charges[input.airport];
+    if (!t) return { error: "Sin tabla de cargos de llegada para " + input.airport };
+
+    var cw = Number(input.chargeableWeight) || 0;
+    var mawbs = Math.max(1, Number(input.mawbs) || 1);
+    var lines = [];
+
+    lines.push({
+      code: "SEC",
+      label: "Seguridad en llegada",
+      detail: "máx(" + t.sec_min.toFixed(2) + " , " + t.sec_rate.toFixed(3) + "/kg × " + cw + " kg)",
+      amount: round2(Math.max(t.sec_min, t.sec_rate * cw))
+    });
+
+    if (input.customs) {
+      lines.push({
+        code: "CUS",
+        label: "Formalidades aduaneras",
+        detail: "máx(" + t.cus_min.toFixed(2) + " , " + t.cus_rate.toFixed(3) + "/kg × " + cw + " kg)",
+        amount: round2(Math.max(t.cus_min, t.cus_rate * cw))
+      });
+      lines.push({
+        code: "DOC",
+        label: "Gestión de documentos de importación",
+        detail: t.imp_doc_fee.toFixed(2) + " por MAWB × " + mawbs,
+        amount: round2(Math.max(t.imp_doc_min, t.imp_doc_fee * mawbs))
+      });
+    }
+
+    if (input.handling === "ULD") {
+      var ulds = Math.max(1, Number(input.ulds) || 1);
+      lines.push({
+        code: "TRK",
+        label: "Carga a camión — ULD",
+        detail: t.truck_uld_fee.toFixed(2) + " por ULD × " + ulds,
+        amount: round2(Math.max(t.truck_uld_min, t.truck_uld_fee * ulds))
+      });
+    } else {
+      lines.push({
+        code: "TRK",
+        label: "Carga a camión — granel",
+        detail: "máx(" + t.truck_bulk_min.toFixed(2) + " , " + t.truck_bulk_fee_mawb.toFixed(2) +
+          " × " + mawbs + " MAWB + " + t.truck_bulk_rate.toFixed(3) + "/kg × " + cw + " kg)",
+        amount: round2(Math.max(t.truck_bulk_min, t.truck_bulk_fee_mawb * mawbs + t.truck_bulk_rate * cw))
+      });
+    }
+
+    var fam = thcFamily(data, input.cargoType);
+    lines.push({
+      code: "THC-ARR",
+      label: "THC en destino (" + famLabel(fam) + ")",
+      detail: "máx(" + t["thc_" + fam + "_min"].toFixed(2) + " , " + t["thc_" + fam + "_rate"].toFixed(3) + "/kg × " + cw + " kg)",
+      amount: round2(Math.max(t["thc_" + fam + "_min"], t["thc_" + fam + "_rate"] * cw))
+    });
+
+    if (input.storageDays > 0) {
+      var st = storage(data, t, input, cw, mawbs);
+      lines.push(st);
+    }
+
+    return {
+      airport: input.airport,
+      lines: lines,
+      subtotal: round2(lines.reduce(function (s, l) { return s + l.amount; }, 0))
+    };
+  }
+
+  function storage(data, t, input, cw, mawbs) {
+    var fam = input.storageFamily || storageFamily(data, input.cargoType);
+    var unit = (data.config.storage && data.config.storage.unit_kg) || 100;
+    var tier1Last = (data.config.storage && data.config.storage.tier_1_last_day) || 20;
+
+    var free = t["st_" + fam + "_free_days"] || 0;
+    var fee = t["st_" + fam + "_mawb_fee"] || 0;
+    var r1 = t["st_" + fam + "_rate_1_20"] || 0;
+    var r2 = t["st_" + fam + "_rate_21plus"] || 0;
+
+    var days = Math.max(0, Number(input.storageDays) || 0);
+    var payable = Math.max(0, days - free);
+    var d1 = Math.min(payable, tier1Last);
+    var d2 = Math.max(0, payable - tier1Last);
+    var units = Math.ceil(cw / unit);
+
+    var amount = fee * mawbs + units * (r1 * d1 + r2 * d2);
+    var detail = free + " días libres · " + units + " × " + unit + " kg · " +
+      d1 + " día(s) a " + r1.toFixed(2) + (d2 ? " + " + d2 + " día(s) a " + r2.toFixed(2) : "") +
+      " + " + fee.toFixed(2) + "/MAWB";
+    if (payable === 0) detail = days + " día(s) dentro de los " + free + " días libres";
+
+    return {
+      code: "STO",
+      label: "Almacenaje — " + famLabel(fam),
+      detail: detail,
+      amount: round2(amount)
+    };
+  }
+
+  /* ── Cotización completa ────────────────────────────────────── */
+  function fullQuote(data, input) {
+    var cur = input.currency || data.config.base_currency;
+    var fx = ((data.config.currencies || {})[cur] || {}).rate_from_base || 1;
+
+    var dep = freightQuote(data, input);
+    if (dep.error) return dep;
+    var arr = arrivalQuote(data, {
+      airport: input.destination,
+      chargeableWeight: dep.chargeableWeight,
+      mawbs: input.mawbs,
+      cargoType: input.cargoType,
+      customs: input.customs,
+      handling: input.handling,
+      ulds: input.ulds,
+      storageDays: input.storageDays,
+      storageFamily: input.storageFamily
+    });
+    if (arr.error) return arr;
+
+    function convert(block) {
+      return {
+        lines: block.lines.map(function (l) {
+          return { code: l.code, label: l.label, detail: l.detail, amount: round2(l.amount * fx) };
+        }),
+        subtotal: round2(block.subtotal * fx)
+      };
+    }
+
+    var d = convert(dep), a = convert(arr);
+    return {
+      reference: reference(data, input),
+      currency: cur,
+      fx: fx,
+      origin: input.origin,
+      destination: input.destination,
+      transitDays: dep.transitDays,
+      chargeableWeight: dep.chargeableWeight,
+      billedWeight: dep.billedWeight,
+      departure: d,
+      arrival: a,
+      total: round2(d.subtotal + a.subtotal),
+      validUntil: validUntil(data)
+    };
+  }
+
+  function reference(data, input) {
+    var p = (data.config.quote && data.config.quote.reference_prefix) || "SDG";
+    var stamp = new Date().toISOString().slice(2, 10).replace(/-/g, "");
+    var seq = Math.floor(Math.random() * 9000 + 1000);
+    return p + "-" + stamp + "-" + (input.origin || "") + (input.destination || "") + "-" + seq;
+  }
+
+  function validUntil(data) {
+    var days = (data.config.quote && data.config.quote.validity_days) || 15;
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function formatMoney(amount, currency, data) {
+    var c = ((data.config.currencies || {})[currency]) || { symbol: "" };
+    return c.symbol + " " + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  root.SDGEngine = {
+    chargeableWeight: chargeableWeight,
+    findRoute: findRoute,
+    freightQuote: freightQuote,
+    arrivalQuote: arrivalQuote,
+    fullQuote: fullQuote,
+    formatMoney: formatMoney,
+    round2: round2
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   SDG Airlines — carga de datos
+   Dos modos, misma forma de salida:
+     local  → docs/data/tariffs.json (generado por scripts/build.py)
+     sheet  → lee el Google Sheet en vivo vía gviz CSV
+   El modo se fija en data/config.json → data_source.mode, y se puede
+   forzar en la URL con ?source=sheet o ?source=local.
+   ══════════════════════════════════════════════════════════════ */
+(function (root) {
+  "use strict";
+
+  var JSON_URL = "data/tariffs.json";
+
+  function parseCSV(text) {
+    var rows = [], row = [], field = "", inQuotes = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') inQuotes = false;
+        else field += c;
+      } else if (c === '"') inQuotes = true;
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c !== "\r") field += c;
+    }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    if (!rows.length) return [];
+    var head = rows.shift().map(function (h) { return h.trim(); });
+    return rows.filter(function (r) { return r.some(function (v) { return v.trim() !== ""; }); })
+      .map(function (r) {
+        var o = {};
+        head.forEach(function (h, i) { o[h] = (r[i] || "").trim(); });
+        return o;
+      });
+  }
+
+  function n(v) {
+    var x = parseFloat(String(v == null ? "" : v).replace(",", "."));
+    return isNaN(x) ? 0 : x;
+  }
+
+  var CHARGE_KEYS = [
+    "sec_min", "sec_rate", "cus_min", "cus_rate",
+    "truck_bulk_min", "truck_bulk_fee_mawb", "truck_bulk_rate",
+    "truck_uld_min", "truck_uld_fee",
+    "thc_gen_min", "thc_gen_rate", "thc_dg_min", "thc_dg_rate",
+    "thc_pha_min", "thc_pha_rate",
+    "st_gen_mawb_fee", "st_gen_rate_1_20", "st_gen_rate_21plus", "st_gen_free_days",
+    "st_cool_mawb_fee", "st_cool_rate_1_20", "st_cool_rate_21plus", "st_cool_free_days",
+    "st_dg_mawb_fee", "st_dg_rate_1_20", "st_dg_rate_21plus", "st_dg_free_days",
+    "imp_doc_min", "imp_doc_fee"
+  ];
+
+  function shape(config, airportRows, chargeRows, routeRows) {
+    var airports = airportRows.map(function (r) {
+      return {
+        code: (r.code || "").toUpperCase(),
+        name: r.name || r.code,
+        country: r.country || "",
+        region: r.region || "",
+        active: ["yes", "si", "sí", "true", "1"].indexOf((r.active || "yes").toLowerCase()) !== -1
+      };
+    }).filter(function (a) { return a.code; });
+
+    var charges = {};
+    chargeRows.forEach(function (r) {
+      var code = (r.code || "").toUpperCase();
+      if (!code) return;
+      var rec = { currency: (r.currency || config.base_currency).toUpperCase() };
+      CHARGE_KEYS.forEach(function (k) { rec[k] = n(r[k]); });
+      charges[code] = rec;
+    });
+
+    var routes = {};
+    routeRows.forEach(function (r) {
+      var o = (r.origin || "").toUpperCase(), d = (r.destination || "").toUpperCase();
+      if (!o || !d) return;
+      routes[o] = routes[o] || {};
+      routes[o][d] = {
+        min: n(r.min_charge), r0: n(r.rate_under_100), r100: n(r.rate_100_299),
+        r300: n(r.rate_300_499), r500: n(r.rate_500_plus),
+        fsc: n(r.fsc_per_kg), ssc: n(r.ssc_per_kg),
+        transit: n(r.transit_days), notes: r.notes || ""
+      };
+    });
+
+    return { config: config, airports: airports, arrival_charges: charges, routes: routes };
+  }
+
+  function sheetURL(id, tab) {
+    return "https://docs.google.com/spreadsheets/d/" + id +
+      "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tab);
+  }
+
+  function loadFromSheet(config) {
+    var ds = config.data_source, id = ds.sheet_id, tabs = ds.sheets;
+    return Promise.all([tabs.airports, tabs.arrival_charges, tabs.routes].map(function (tab) {
+      return fetch(sheetURL(id, tab)).then(function (r) {
+        if (!r.ok) throw new Error("No se pudo leer la pestaña '" + tab + "' (HTTP " + r.status + ")");
+        return r.text();
+      }).then(parseCSV);
+    })).then(function (parts) {
+      return shape(config, parts[0], parts[1], parts[2]);
+    });
+  }
+
+  function load() {
+    var forced = new URLSearchParams(location.search).get("source");
+    return fetch(JSON_URL, { cache: "no-cache" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Falta data/tariffs.json — ejecuta `python scripts/build.py`");
+        return r.json();
+      })
+      .then(function (bundle) {
+        var mode = forced || (bundle.config.data_source && bundle.config.data_source.mode) || "local";
+        if (mode !== "sheet") { bundle.source = "local"; return bundle; }
+        return loadFromSheet(bundle.config)
+          .then(function (live) { live.source = "sheet"; live.generated_at = new Date().toISOString(); return live; })
+          .catch(function (err) {
+            console.warn("Modo hoja no disponible, se usa la copia local:", err.message);
+            bundle.source = "local (la hoja no respondió)";
+            return bundle;
+          });
+      });
+  }
+
+  root.SDGData = { load: load, parseCSV: parseCSV, shape: shape };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   SDG Airlines — interfaz
+   Los desplegables se construyen a partir de los datos, así que
+   añadir un aeropuerto es añadir una fila al CSV. Nada más.
+   ══════════════════════════════════════════════════════════════ */
+(function (root) {
+  "use strict";
+
+  var DATA = null, MODE = "full", LAST = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(tag, attrs, html) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+
+  function airportOptions(select, placeholder) {
+    select.innerHTML = "";
+    select.appendChild(el("option", { value: "" }, placeholder));
+    var byRegion = {};
+    DATA.airports.filter(function (a) { return a.active; }).forEach(function (a) {
+      (byRegion[a.region || "Otros"] = byRegion[a.region || "Otros"] || []).push(a);
+    });
+    Object.keys(byRegion).sort().forEach(function (region) {
+      var g = el("optgroup", { label: region });
+      byRegion[region].sort(function (x, y) { return x.code < y.code ? -1 : 1; }).forEach(function (a) {
+        g.appendChild(el("option", { value: a.code }, a.code + " — " + a.name + " (" + a.country + ")"));
+      });
+      select.appendChild(g);
+    });
+  }
+
+  function cargoOptions(select) {
+    select.innerHTML = "";
+    DATA.config.cargo_types.forEach(function (c) {
+      select.appendChild(el("option", { value: c.id }, c.label));
+    });
+  }
+
+  function currencyOptions(select) {
+    select.innerHTML = "";
+    Object.keys(DATA.config.currencies).forEach(function (c) {
+      select.appendChild(el("option", { value: c }, c + " — " + DATA.config.currencies[c].label));
+    });
+  }
+
+  /* ── piezas ────────────────────────────────────────────────── */
+  function pieceRow(values) {
+    var v = values || { qty: 1, weightKg: 100, l: 60, w: 40, h: 30 };
+    var row = el("div", { class: "piece-row" });
+    row.innerHTML =
+      '<div class="field"><label>Bultos</label><input type="number" min="1" step="1" data-k="qty" value="' + v.qty + '"></div>' +
+      '<div class="field"><label>Peso por bulto (kg)</label><input type="number" min="0" step="0.1" data-k="weightKg" value="' + v.weightKg + '"></div>' +
+      '<div class="field"><label>Largo (cm)</label><input type="number" min="0" data-k="l" value="' + v.l + '"></div>' +
+      '<div class="field"><label>Ancho (cm)</label><input type="number" min="0" data-k="w" value="' + v.w + '"></div>' +
+      '<div class="field"><label>Alto (cm)</label><input type="number" min="0" data-k="h" value="' + v.h + '"></div>' +
+      '<button class="btn-mini" type="button" title="Quitar esta línea" aria-label="Quitar esta línea">×</button>';
+    row.querySelector("button").onclick = function () {
+      if ($("pieces").querySelectorAll(".piece-row").length > 1) { row.remove(); refreshWeights(); }
+    };
+    row.addEventListener("input", refreshWeights);
+    return row;
+  }
+
+  function readPieces() {
+    return Array.prototype.map.call($("pieces").querySelectorAll(".piece-row"), function (r) {
+      var o = {};
+      r.querySelectorAll("input").forEach(function (i) { o[i.dataset.k] = parseFloat(i.value) || 0; });
+      return o;
+    });
+  }
+
+  function refreshWeights() {
+    var cfg = DATA.config;
+    var w = root.SDGEngine.chargeableWeight(readPieces(), cfg.volumetric_factor, cfg.chargeable_weight_rounding);
+    $("w-gross").textContent = w.gross.toFixed(1) + " kg";
+    $("w-vol").textContent = w.volumetric.toFixed(1) + " kg";
+    $("w-cw").textContent = w.chargeable.toFixed(1) + " kg";
+    $("w-basis").textContent = w.basis;
+    return w;
+  }
+
+  function currentCW() {
+    var override = parseFloat($("cwOverride") && $("cwOverride").value);
+    if (override > 0) return override;
+    if (MODE === "arrival") return parseFloat($("cwDirect").value) || 0;
+    return refreshWeights().chargeable;
+  }
+
+  /* ── render ────────────────────────────────────────────────── */
+  function money(a) { return root.SDGEngine.formatMoney(a, $("currency").value, DATA); }
+
+  function lineRow(l) {
+    return '<tr><td><div class="c-name"><span class="c-code">' + l.code + '</span>' + l.label + '</div>' +
+      '<div class="c-detail">' + l.detail + '</div></td>' +
+      '<td><span class="amt">' + money(l.amount) + '</span></td></tr>';
+  }
+
+  function render(q) {
+    LAST = q;
+    var body = "";
+    if (q.departure) {
+      body += '<tr class="divider"><td colspan="2">Origen — flete y manipulación en salida</td></tr>';
+      body += q.departure.lines.map(lineRow).join("");
+      body += '<tr class="sub-row"><td>Subtotal salida</td><td class="amt">' + money(q.departure.subtotal) + '</td></tr>';
+    }
+    body += '<tr class="divider"><td colspan="2">Destino — cargos de llegada</td></tr>';
+    body += q.arrival.lines.map(lineRow).join("");
+    if (q.departure) {
+      body += '<tr class="sub-row"><td>Subtotal llegada</td><td class="amt">' + money(q.arrival.subtotal) + '</td></tr>';
+    }
+    $("bk-body").innerHTML = body;
+    $("res-total").textContent = money(q.total);
+
+    $("res-route").textContent = q.departure ? q.origin + " → " + q.destination : q.destination;
+    var apName = function (c) {
+      var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
+      return a ? a.name : c;
+    };
+    $("res-sub").textContent = q.departure ? apName(q.origin) + " → " + apName(q.destination) : apName(q.destination);
+
+    var cargoLabel = $("cargoType").options[$("cargoType").selectedIndex].textContent;
+    var chips = [q.reference, q.chargeableWeight + " kg facturables", cargoLabel, q.currency];
+    if (q.billedWeight && q.billedWeight !== q.chargeableWeight) chips.push("facturado a " + q.billedWeight + " kg");
+    if (q.transitDays) chips.push(q.transitDays + " días de tránsito");
+    chips.push("válida hasta " + q.validUntil);
+    $("res-chips").innerHTML = chips.map(function (c) { return '<span class="chip">' + c + "</span>"; }).join("");
+
+    $("res").classList.add("on");
+    $("res").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function fail(msg) {
+    $("res-error").innerHTML = '<div class="err">' + msg + "</div>";
+    $("res").classList.add("on");
+  }
+
+  /* ── cálculo ───────────────────────────────────────────────── */
+  function calculate() {
+    $("res-error").innerHTML = "";
+    var input = {
+      origin: MODE === "full" ? $("origin").value : null,
+      destination: $("destination").value,
+      chargeableWeight: currentCW(),
+      mawbs: parseInt($("mawbs").value, 10) || 1,
+      cargoType: $("cargoType").value,
+      customs: $("customs").value === "yes",
+      handling: $("handling").value,
+      ulds: parseInt($("ulds").value, 10) || 1,
+      storageDays: parseInt($("storageDays").value, 10) || 0,
+      currency: $("currency").value
+    };
+
+    if (MODE === "full" && !input.origin) return fail("Elige el aeropuerto de origen.");
+    if (!input.destination) return fail("Elige el aeropuerto de destino.");
+    if (MODE === "full" && input.origin === input.destination) return fail("Origen y destino no pueden coincidir.");
+    if (!(input.chargeableWeight > 0)) return fail("Introduce dimensiones o un peso facturable mayor que cero.");
+
+    var q;
+    if (MODE === "full") {
+      q = root.SDGEngine.fullQuote(DATA, input);
+    } else {
+      var a = root.SDGEngine.arrivalQuote(DATA, {
+        airport: input.destination, chargeableWeight: input.chargeableWeight,
+        mawbs: input.mawbs, cargoType: input.cargoType, customs: input.customs,
+        handling: input.handling, ulds: input.ulds, storageDays: input.storageDays
+      });
+      if (a.error) return fail(a.error);
+      var fx = (DATA.config.currencies[input.currency] || {}).rate_from_base || 1;
+      a.lines = a.lines.map(function (l) { return Object.assign({}, l, { amount: root.SDGEngine.round2(l.amount * fx) }); });
+      a.subtotal = root.SDGEngine.round2(a.subtotal * fx);
+      q = {
+        reference: "SDG-ARR-" + Math.floor(Math.random() * 9000 + 1000),
+        currency: input.currency, destination: input.destination,
+        chargeableWeight: input.chargeableWeight, arrival: a, total: a.subtotal,
+        validUntil: new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10)
+      };
+    }
+    if (q.error) return fail(q.error);
+    render(q);
+  }
+
+  /* ── exportar ──────────────────────────────────────────────── */
+  function exportCSV() {
+    if (!LAST) return;
+    var rows = [["referencia", "origen", "destino", "concepto", "detalle", "importe", "moneda"]];
+    var push = function (l) {
+      rows.push([LAST.reference, LAST.origin || "", LAST.destination, l.label, l.detail, l.amount, LAST.currency]);
+    };
+    if (LAST.departure) LAST.departure.lines.forEach(push);
+    LAST.arrival.lines.forEach(push);
+    rows.push([LAST.reference, LAST.origin || "", LAST.destination, "TOTAL", "", LAST.total, LAST.currency]);
+    var csv = rows.map(function (r) {
+      return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(",");
+    }).join("\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = LAST.reference + ".csv";
+    a.click();
+  }
+
+  /* ── arranque ──────────────────────────────────────────────── */
+  function init(mode) {
+    MODE = mode;
+    return root.SDGData.load().then(function (data) {
+      DATA = data;
+
+      if (MODE === "full") airportOptions($("origin"), "— Elige el origen —");
+      airportOptions($("destination"), "— Elige el destino —");
+      cargoOptions($("cargoType"));
+      currencyOptions($("currency"));
+
+      if (MODE === "full") {
+        $("pieces").insertBefore(pieceRow(), $("pieces-foot"));
+        $("addPiece").onclick = function () {
+          $("pieces").insertBefore(pieceRow(), $("pieces-foot"));
+          refreshWeights();
+        };
+        refreshWeights();
+      }
+
+      $("handling").onchange = function () {
+        $("uldField").style.display = this.value === "ULD" ? "" : "none";
+      };
+      $("handling").onchange();
+
+      $("calc").onclick = calculate;
+      $("print").onclick = function () { window.print(); };
+      $("csv").onclick = exportCSV;
+
+      var active = data.airports.filter(function (a) { return a.active; }).length;
+      if ($("stat-airports")) $("stat-airports").textContent = active + " aeropuertos";
+      if ($("stat-source")) {
+        $("stat-source").textContent = data.source === "sheet" ? "hoja en vivo" : "datos del repo";
+        $("stat-source").className = "tb-pill " + (data.source === "sheet" ? "live" : "");
+      }
+      if ($("stat-updated") && data.generated_at) {
+        $("stat-updated").textContent = data.generated_at.slice(0, 10);
+      }
+      return data;
+    }).catch(function (err) {
+      document.body.insertBefore(
+        el("div", { class: "err", style: "margin:20px" }, "No se han podido cargar las tarifas: " + err.message),
+        document.body.firstChild
+      );
+      throw err;
+    });
+  }
+
+  root.SDGUI = { init: init, calculate: calculate, data: function () { return DATA; } };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+</script>
+<script>SDGUI.init('full');</script>
+<script>
+window.__SDG_TARIFFS__ = {"generated_at": "2026-08-25T06:22:48+00:00", "config": {"brand": {"airline": "SDG Airlines", "division": "Air Cargo Division", "operator": "Escola Europea – Intermodal Transport", "programme": "Port Virtual Lab", "disclaimer": "Educational simulation · Not for commercial use"}, "base_currency": "EUR", "currencies": {"EUR": {"symbol": "€", "label": "Euro", "rate_from_base": 1.0}, "USD": {"symbol": "$", "label": "US Dollar", "rate_from_base": 1.08}}, "volumetric_factor": 167, "chargeable_weight_rounding": 0.5, "storage": {"unit_kg": 100, "tier_1_last_day": 20}, "cargo_types": [{"id": "GEN", "label": "General Cargo", "thc": "gen", "storage": "gen"}, {"id": "DGR", "label": "Dangerous Goods (DGR)", "thc": "dg", "storage": "dg"}, {"id": "PHA", "label": "Pharma", "thc": "pha", "storage": "cool"}, {"id": "PER", "label": "Perishable / Temperature Controlled", "thc": "pha", "storage": "cool"}, {"id": "VAL", "label": "Valuable / Vulnerable Goods", "thc": "gen", "storage": "gen"}], "quote": {"reference_prefix": "SDG", "validity_days": 15}, "data_source": {"mode": "local", "sheet_id": "1gOVYF-CoBiaGt3JmyMOuczZq_H0CUIAXmNQJ5vD0QVc", "sheets": {"airports": "airports", "arrival_charges": "arrival_charges", "routes": "routes"}}}, "airports": [{"code": "ALG", "name": "ALGIER", "country": "Algeria", "region": "North Africa", "active": true}, {"code": "AMM", "name": "AMMAN", "country": "Jordan", "region": "Middle East", "active": true}, {"code": "AMS", "name": "AMSTERDAM", "country": "Netherlands", "region": "Europe", "active": true}, {"code": "ATH", "name": "ATHENS", "country": "Greece", "region": "Europe", "active": true}, {"code": "BCN", "name": "BARCELONA", "country": "Spain", "region": "Europe", "active": true}, {"code": "BEY", "name": "BEYRUT", "country": "Lebanon", "region": "Middle East", "active": true}, {"code": "BKK", "name": "BANGKOK", "country": "Thailand", "region": "Asia", "active": true}, {"code": "BOM", "name": "MUMBAI", "country": "India", "region": "Asia", "active": true}, {"code": "CAI", "name": "CAIRO", "country": "Egypt", "region": "North Africa", "active": true}, {"code": "CMN", "name": "CASABLANCA", "country": "Morocco", "region": "North Africa", "active": true}, {"code": "DXB", "name": "DUBAI", "country": "United Arab Emirates", "region": "Middle East", "active": true}, {"code": "FCO", "name": "ROMA", "country": "Italy", "region": "Europe", "active": true}, {"code": "HKG", "name": "HONG KONG", "country": "China", "region": "Asia", "active": true}, {"code": "IST", "name": "ISTANBUL", "country": "Turkey", "region": "Europe / Middle East", "active": true}, {"code": "JED", "name": "JEDDAH", "country": "Saudi Arabia", "region": "Middle East", "active": true}, {"code": "LIS", "name": "LISBON", "country": "Portugal", "region": "Europe", "active": true}, {"code": "MAD", "name": "MADRID", "country": "Spain", "region": "Europe", "active": true}, {"code": "MLA", "name": "LUQA", "country": "Malta", "region": "Europe", "active": true}, {"code": "MRS", "name": "MARSEILLE", "country": "France", "region": "Europe", "active": true}, {"code": "NKC", "name": "NOUAKCHOTT", "country": "Mauritania", "region": "North Africa", "active": true}, {"code": "PUS", "name": "BUSAN", "country": "South Korea", "region": "Asia", "active": true}, {"code": "TIA", "name": "TIRANA", "country": "Albania", "region": "Europe", "active": true}, {"code": "TIP", "name": "TRIPOLI", "country": "Libya", "region": "North Africa", "active": true}, {"code": "TLV", "name": "TEL AVIV", "country": "Israel", "region": "Middle East", "active": true}, {"code": "TUN", "name": "TUNIS", "country": "Tunisia", "region": "North Africa", "active": true}, {"code": "VLC", "name": "VALENCIA", "country": "Spain", "region": "Europe", "active": true}], "arrival_charges": {"ALG": {"currency": "EUR", "sec_min": 28.0, "sec_rate": 0.13, "cus_min": 36.4, "cus_rate": 0.07, "truck_bulk_min": 45.0, "truck_bulk_fee_mawb": 40.0, "truck_bulk_rate": 0.06, "truck_uld_min": 0.0, "truck_uld_fee": 36.4, "thc_gen_min": 1.05, "thc_gen_rate": 0.03, "thc_dg_min": 1.5, "thc_dg_rate": 0.033, "thc_pha_min": 1.5, "thc_pha_rate": 0.033, "st_gen_mawb_fee": 36.4, "st_gen_rate_1_20": 7.7, "st_gen_rate_21plus": 18.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 39.0, "st_cool_rate_1_20": 16.0, "st_cool_rate_21plus": 26.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 39.0, "st_dg_rate_1_20": 9.0, "st_dg_rate_21plus": 18.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "AMM": {"currency": "EUR", "sec_min": 28.01, "sec_rate": 0.14, "cus_min": 36.41, "cus_rate": 0.08, "truck_bulk_min": 45.01, "truck_bulk_fee_mawb": 40.01, "truck_bulk_rate": 0.07, "truck_uld_min": 0.0, "truck_uld_fee": 36.41, "thc_gen_min": 1.06, "thc_gen_rate": 0.031, "thc_dg_min": 1.51, "thc_dg_rate": 0.034, "thc_pha_min": 1.51, "thc_pha_rate": 0.034, "st_gen_mawb_fee": 39.4, "st_gen_rate_1_20": 10.7, "st_gen_rate_21plus": 21.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 42.0, "st_cool_rate_1_20": 19.0, "st_cool_rate_21plus": 29.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 42.0, "st_dg_rate_1_20": 12.0, "st_dg_rate_21plus": 21.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "AMS": {"currency": "EUR", "sec_min": 28.23, "sec_rate": 0.36, "cus_min": 36.63, "cus_rate": 0.3, "truck_bulk_min": 45.23, "truck_bulk_fee_mawb": 40.23, "truck_bulk_rate": 0.29, "truck_uld_min": 0.0, "truck_uld_fee": 36.63, "thc_gen_min": 1.28, "thc_gen_rate": 0.053, "thc_dg_min": 1.73, "thc_dg_rate": 0.056, "thc_pha_min": 1.73, "thc_pha_rate": 0.056, "st_gen_mawb_fee": 47.4, "st_gen_rate_1_20": 18.7, "st_gen_rate_21plus": 29.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 50.0, "st_cool_rate_1_20": 27.0, "st_cool_rate_21plus": 37.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 50.0, "st_dg_rate_1_20": 20.0, "st_dg_rate_21plus": 29.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "ATH": {"currency": "EUR", "sec_min": 28.02, "sec_rate": 0.15, "cus_min": 36.42, "cus_rate": 0.09, "truck_bulk_min": 45.02, "truck_bulk_fee_mawb": 40.02, "truck_bulk_rate": 0.08, "truck_uld_min": 0.0, "truck_uld_fee": 36.42, "thc_gen_min": 1.07, "thc_gen_rate": 0.032, "thc_dg_min": 1.52, "thc_dg_rate": 0.035, "thc_pha_min": 1.52, "thc_pha_rate": 0.035, "st_gen_mawb_fee": 42.4, "st_gen_rate_1_20": 13.7, "st_gen_rate_21plus": 24.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 45.0, "st_cool_rate_1_20": 22.0, "st_cool_rate_21plus": 32.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 45.0, "st_dg_rate_1_20": 15.0, "st_dg_rate_21plus": 24.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "BCN": {"currency": "EUR", "sec_min": 28.03, "sec_rate": 0.16, "cus_min": 36.43, "cus_rate": 0.1, "truck_bulk_min": 45.03, "truck_bulk_fee_mawb": 40.03, "truck_bulk_rate": 0.09, "truck_uld_min": 0.0, "truck_uld_fee": 36.43, "thc_gen_min": 1.08, "thc_gen_rate": 0.033, "thc_dg_min": 1.53, "thc_dg_rate": 0.036, "thc_pha_min": 1.53, "thc_pha_rate": 0.036, "st_gen_mawb_fee": 45.4, "st_gen_rate_1_20": 16.7, "st_gen_rate_21plus": 27.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 48.0, "st_cool_rate_1_20": 25.0, "st_cool_rate_21plus": 35.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 48.0, "st_dg_rate_1_20": 18.0, "st_dg_rate_21plus": 27.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "BEY": {"currency": "EUR", "sec_min": 28.04, "sec_rate": 0.17, "cus_min": 36.44, "cus_rate": 0.11, "truck_bulk_min": 45.04, "truck_bulk_fee_mawb": 40.04, "truck_bulk_rate": 0.1, "truck_uld_min": 0.0, "truck_uld_fee": 36.44, "thc_gen_min": 1.09, "thc_gen_rate": 0.034, "thc_dg_min": 1.54, "thc_dg_rate": 0.037, "thc_pha_min": 1.54, "thc_pha_rate": 0.037, "st_gen_mawb_fee": 48.4, "st_gen_rate_1_20": 19.7, "st_gen_rate_21plus": 30.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 51.0, "st_cool_rate_1_20": 28.0, "st_cool_rate_21plus": 38.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 51.0, "st_dg_rate_1_20": 21.0, "st_dg_rate_21plus": 30.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "BKK": {"currency": "EUR", "sec_min": 28.18, "sec_rate": 0.31, "cus_min": 36.58, "cus_rate": 0.25, "truck_bulk_min": 45.18, "truck_bulk_fee_mawb": 40.18, "truck_bulk_rate": 0.24, "truck_uld_min": 0.0, "truck_uld_fee": 36.58, "thc_gen_min": 1.23, "thc_gen_rate": 0.048, "thc_dg_min": 1.68, "thc_dg_rate": 0.051, "thc_pha_min": 1.68, "thc_pha_rate": 0.051, "st_gen_mawb_fee": 46.4, "st_gen_rate_1_20": 17.7, "st_gen_rate_21plus": 28.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 49.0, "st_cool_rate_1_20": 26.0, "st_cool_rate_21plus": 36.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 49.0, "st_dg_rate_1_20": 19.0, "st_dg_rate_21plus": 28.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "BOM": {"currency": "EUR", "sec_min": 28.19, "sec_rate": 0.32, "cus_min": 36.59, "cus_rate": 0.26, "truck_bulk_min": 45.19, "truck_bulk_fee_mawb": 40.19, "truck_bulk_rate": 0.25, "truck_uld_min": 0.0, "truck_uld_fee": 36.59, "thc_gen_min": 1.24, "thc_gen_rate": 0.049, "thc_dg_min": 1.69, "thc_dg_rate": 0.052, "thc_pha_min": 1.69, "thc_pha_rate": 0.052, "st_gen_mawb_fee": 44.4, "st_gen_rate_1_20": 15.7, "st_gen_rate_21plus": 26.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 47.0, "st_cool_rate_1_20": 24.0, "st_cool_rate_21plus": 34.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 47.0, "st_dg_rate_1_20": 17.0, "st_dg_rate_21plus": 26.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "CAI": {"currency": "EUR", "sec_min": 28.05, "sec_rate": 0.18, "cus_min": 36.45, "cus_rate": 0.12, "truck_bulk_min": 45.05, "truck_bulk_fee_mawb": 40.05, "truck_bulk_rate": 0.11, "truck_uld_min": 0.0, "truck_uld_fee": 36.45, "thc_gen_min": 1.1, "thc_gen_rate": 0.035, "thc_dg_min": 1.55, "thc_dg_rate": 0.038, "thc_pha_min": 1.55, "thc_pha_rate": 0.038, "st_gen_mawb_fee": 37.4, "st_gen_rate_1_20": 8.7, "st_gen_rate_21plus": 19.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 40.0, "st_cool_rate_1_20": 17.0, "st_cool_rate_21plus": 27.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 40.0, "st_dg_rate_1_20": 10.0, "st_dg_rate_21plus": 19.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "CMN": {"currency": "EUR", "sec_min": 28.06, "sec_rate": 0.19, "cus_min": 36.46, "cus_rate": 0.13, "truck_bulk_min": 45.06, "truck_bulk_fee_mawb": 40.06, "truck_bulk_rate": 0.12, "truck_uld_min": 0.0, "truck_uld_fee": 36.46, "thc_gen_min": 1.11, "thc_gen_rate": 0.036, "thc_dg_min": 1.56, "thc_dg_rate": 0.039, "thc_pha_min": 1.56, "thc_pha_rate": 0.039, "st_gen_mawb_fee": 40.4, "st_gen_rate_1_20": 11.7, "st_gen_rate_21plus": 22.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 43.0, "st_cool_rate_1_20": 20.0, "st_cool_rate_21plus": 30.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 43.0, "st_dg_rate_1_20": 13.0, "st_dg_rate_21plus": 22.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "DXB": {"currency": "EUR", "sec_min": 28.19, "sec_rate": 0.32, "cus_min": 36.59, "cus_rate": 0.26, "truck_bulk_min": 45.19, "truck_bulk_fee_mawb": 40.19, "truck_bulk_rate": 0.25, "truck_uld_min": 0.0, "truck_uld_fee": 36.59, "thc_gen_min": 1.24, "thc_gen_rate": 0.049, "thc_dg_min": 1.69, "thc_dg_rate": 0.052, "thc_pha_min": 1.69, "thc_pha_rate": 0.052, "st_gen_mawb_fee": 47.4, "st_gen_rate_1_20": 18.7, "st_gen_rate_21plus": 29.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 50.0, "st_cool_rate_1_20": 27.0, "st_cool_rate_21plus": 37.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 50.0, "st_dg_rate_1_20": 20.0, "st_dg_rate_21plus": 29.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 0.0}, "FCO": {"currency": "EUR", "sec_min": 28.07, "sec_rate": 0.2, "cus_min": 36.47, "cus_rate": 0.14, "truck_bulk_min": 45.07, "truck_bulk_fee_mawb": 40.07, "truck_bulk_rate": 0.13, "truck_uld_min": 0.0, "truck_uld_fee": 36.47, "thc_gen_min": 1.12, "thc_gen_rate": 0.037, "thc_dg_min": 1.57, "thc_dg_rate": 0.04, "thc_pha_min": 1.57, "thc_pha_rate": 0.04, "st_gen_mawb_fee": 38.4, "st_gen_rate_1_20": 9.7, "st_gen_rate_21plus": 20.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 41.0, "st_cool_rate_1_20": 18.0, "st_cool_rate_21plus": 28.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 41.0, "st_dg_rate_1_20": 11.0, "st_dg_rate_21plus": 20.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "HKG": {"currency": "EUR", "sec_min": 28.21, "sec_rate": 0.34, "cus_min": 36.61, "cus_rate": 0.28, "truck_bulk_min": 45.21, "truck_bulk_fee_mawb": 40.21, "truck_bulk_rate": 0.27, "truck_uld_min": 0.0, "truck_uld_fee": 36.61, "thc_gen_min": 1.26, "thc_gen_rate": 0.051, "thc_dg_min": 1.71, "thc_dg_rate": 0.054, "thc_pha_min": 1.71, "thc_pha_rate": 0.054, "st_gen_mawb_fee": 46.4, "st_gen_rate_1_20": 17.7, "st_gen_rate_21plus": 28.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 49.0, "st_cool_rate_1_20": 26.0, "st_cool_rate_21plus": 36.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 49.0, "st_dg_rate_1_20": 19.0, "st_dg_rate_21plus": 28.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 0.0}, "IST": {"currency": "EUR", "sec_min": 28.08, "sec_rate": 0.21, "cus_min": 36.48, "cus_rate": 0.15, "truck_bulk_min": 45.08, "truck_bulk_fee_mawb": 40.08, "truck_bulk_rate": 0.14, "truck_uld_min": 0.0, "truck_uld_fee": 36.48, "thc_gen_min": 1.13, "thc_gen_rate": 0.038, "thc_dg_min": 1.58, "thc_dg_rate": 0.041, "thc_pha_min": 1.58, "thc_pha_rate": 0.041, "st_gen_mawb_fee": 41.4, "st_gen_rate_1_20": 12.7, "st_gen_rate_21plus": 23.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 44.0, "st_cool_rate_1_20": 21.0, "st_cool_rate_21plus": 31.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 44.0, "st_dg_rate_1_20": 14.0, "st_dg_rate_21plus": 23.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "JED": {"currency": "EUR", "sec_min": 28.21, "sec_rate": 0.34, "cus_min": 36.61, "cus_rate": 0.28, "truck_bulk_min": 45.21, "truck_bulk_fee_mawb": 40.21, "truck_bulk_rate": 0.27, "truck_uld_min": 0.0, "truck_uld_fee": 36.61, "thc_gen_min": 1.26, "thc_gen_rate": 0.051, "thc_dg_min": 1.71, "thc_dg_rate": 0.054, "thc_pha_min": 1.71, "thc_pha_rate": 0.054, "st_gen_mawb_fee": 48.4, "st_gen_rate_1_20": 19.7, "st_gen_rate_21plus": 30.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 51.0, "st_cool_rate_1_20": 28.0, "st_cool_rate_21plus": 38.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 51.0, "st_dg_rate_1_20": 21.0, "st_dg_rate_21plus": 30.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 0.0}, "LIS": {"currency": "EUR", "sec_min": 28.09, "sec_rate": 0.22, "cus_min": 36.49, "cus_rate": 0.16, "truck_bulk_min": 45.09, "truck_bulk_fee_mawb": 40.09, "truck_bulk_rate": 0.15, "truck_uld_min": 0.0, "truck_uld_fee": 36.49, "thc_gen_min": 1.14, "thc_gen_rate": 0.039, "thc_dg_min": 1.59, "thc_dg_rate": 0.042, "thc_pha_min": 1.59, "thc_pha_rate": 0.042, "st_gen_mawb_fee": 39.4, "st_gen_rate_1_20": 10.7, "st_gen_rate_21plus": 21.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 42.0, "st_cool_rate_1_20": 19.0, "st_cool_rate_21plus": 29.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 42.0, "st_dg_rate_1_20": 12.0, "st_dg_rate_21plus": 21.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "MAD": {"currency": "EUR", "sec_min": 28.1, "sec_rate": 0.23, "cus_min": 36.5, "cus_rate": 0.17, "truck_bulk_min": 45.1, "truck_bulk_fee_mawb": 40.1, "truck_bulk_rate": 0.16, "truck_uld_min": 0.0, "truck_uld_fee": 36.5, "thc_gen_min": 1.15, "thc_gen_rate": 0.04, "thc_dg_min": 1.6, "thc_dg_rate": 0.043, "thc_pha_min": 1.6, "thc_pha_rate": 0.043, "st_gen_mawb_fee": 42.4, "st_gen_rate_1_20": 13.7, "st_gen_rate_21plus": 24.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 45.0, "st_cool_rate_1_20": 22.0, "st_cool_rate_21plus": 32.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 45.0, "st_dg_rate_1_20": 15.0, "st_dg_rate_21plus": 24.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "MLA": {"currency": "EUR", "sec_min": 28.11, "sec_rate": 0.24, "cus_min": 36.51, "cus_rate": 0.18, "truck_bulk_min": 45.11, "truck_bulk_fee_mawb": 40.11, "truck_bulk_rate": 0.17, "truck_uld_min": 0.0, "truck_uld_fee": 36.51, "thc_gen_min": 1.16, "thc_gen_rate": 0.041, "thc_dg_min": 1.61, "thc_dg_rate": 0.044, "thc_pha_min": 1.61, "thc_pha_rate": 0.044, "st_gen_mawb_fee": 40.4, "st_gen_rate_1_20": 11.7, "st_gen_rate_21plus": 22.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 43.0, "st_cool_rate_1_20": 20.0, "st_cool_rate_21plus": 30.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 43.0, "st_dg_rate_1_20": 13.0, "st_dg_rate_21plus": 22.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "MRS": {"currency": "EUR", "sec_min": 28.12, "sec_rate": 0.25, "cus_min": 36.52, "cus_rate": 0.19, "truck_bulk_min": 45.12, "truck_bulk_fee_mawb": 40.12, "truck_bulk_rate": 0.18, "truck_uld_min": 0.0, "truck_uld_fee": 36.52, "thc_gen_min": 1.17, "thc_gen_rate": 0.042, "thc_dg_min": 1.62, "thc_dg_rate": 0.045, "thc_pha_min": 1.62, "thc_pha_rate": 0.045, "st_gen_mawb_fee": 43.4, "st_gen_rate_1_20": 14.7, "st_gen_rate_21plus": 25.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 46.0, "st_cool_rate_1_20": 23.0, "st_cool_rate_21plus": 33.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 46.0, "st_dg_rate_1_20": 16.0, "st_dg_rate_21plus": 25.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "NKC": {"currency": "EUR", "sec_min": 28.13, "sec_rate": 0.26, "cus_min": 36.53, "cus_rate": 0.2, "truck_bulk_min": 45.13, "truck_bulk_fee_mawb": 40.13, "truck_bulk_rate": 0.19, "truck_uld_min": 0.0, "truck_uld_fee": 36.53, "thc_gen_min": 1.18, "thc_gen_rate": 0.043, "thc_dg_min": 1.63, "thc_dg_rate": 0.046, "thc_pha_min": 1.63, "thc_pha_rate": 0.046, "st_gen_mawb_fee": 41.4, "st_gen_rate_1_20": 12.7, "st_gen_rate_21plus": 23.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 44.0, "st_cool_rate_1_20": 21.0, "st_cool_rate_21plus": 31.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 44.0, "st_dg_rate_1_20": 14.0, "st_dg_rate_21plus": 23.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "PUS": {"currency": "EUR", "sec_min": 28.2, "sec_rate": 0.33, "cus_min": 36.6, "cus_rate": 0.27, "truck_bulk_min": 45.2, "truck_bulk_fee_mawb": 40.2, "truck_bulk_rate": 0.26, "truck_uld_min": 0.0, "truck_uld_fee": 36.6, "thc_gen_min": 1.25, "thc_gen_rate": 0.05, "thc_dg_min": 1.7, "thc_dg_rate": 0.053, "thc_pha_min": 1.7, "thc_pha_rate": 0.053, "st_gen_mawb_fee": 45.4, "st_gen_rate_1_20": 16.7, "st_gen_rate_21plus": 27.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 48.0, "st_cool_rate_1_20": 25.0, "st_cool_rate_21plus": 35.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 48.0, "st_dg_rate_1_20": 18.0, "st_dg_rate_21plus": 27.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 0.0}, "TIA": {"currency": "EUR", "sec_min": 28.22, "sec_rate": 0.35, "cus_min": 36.62, "cus_rate": 0.29, "truck_bulk_min": 45.22, "truck_bulk_fee_mawb": 40.22, "truck_bulk_rate": 0.28, "truck_uld_min": 0.0, "truck_uld_fee": 36.62, "thc_gen_min": 1.27, "thc_gen_rate": 0.052, "thc_dg_min": 1.72, "thc_dg_rate": 0.055, "thc_pha_min": 1.72, "thc_pha_rate": 0.055, "st_gen_mawb_fee": 49.4, "st_gen_rate_1_20": 20.7, "st_gen_rate_21plus": 31.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 52.0, "st_cool_rate_1_20": 29.0, "st_cool_rate_21plus": 39.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 52.0, "st_dg_rate_1_20": 22.0, "st_dg_rate_21plus": 31.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "TIP": {"currency": "EUR", "sec_min": 28.16, "sec_rate": 0.29, "cus_min": 36.56, "cus_rate": 0.23, "truck_bulk_min": 45.16, "truck_bulk_fee_mawb": 40.16, "truck_bulk_rate": 0.22, "truck_uld_min": 0.0, "truck_uld_fee": 36.56, "thc_gen_min": 1.21, "thc_gen_rate": 0.046, "thc_dg_min": 1.66, "thc_dg_rate": 0.049, "thc_pha_min": 1.66, "thc_pha_rate": 0.049, "st_gen_mawb_fee": 45.4, "st_gen_rate_1_20": 16.7, "st_gen_rate_21plus": 27.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 48.0, "st_cool_rate_1_20": 25.0, "st_cool_rate_21plus": 35.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 48.0, "st_dg_rate_1_20": 18.0, "st_dg_rate_21plus": 27.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "TLV": {"currency": "EUR", "sec_min": 28.14, "sec_rate": 0.27, "cus_min": 36.54, "cus_rate": 0.21, "truck_bulk_min": 45.14, "truck_bulk_fee_mawb": 40.14, "truck_bulk_rate": 0.2, "truck_uld_min": 0.0, "truck_uld_fee": 36.54, "thc_gen_min": 1.19, "thc_gen_rate": 0.044, "thc_dg_min": 1.64, "thc_dg_rate": 0.047, "thc_pha_min": 1.64, "thc_pha_rate": 0.047, "st_gen_mawb_fee": 44.4, "st_gen_rate_1_20": 15.7, "st_gen_rate_21plus": 26.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 47.0, "st_cool_rate_1_20": 24.0, "st_cool_rate_21plus": 34.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 47.0, "st_dg_rate_1_20": 17.0, "st_dg_rate_21plus": 26.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "TUN": {"currency": "EUR", "sec_min": 28.15, "sec_rate": 0.28, "cus_min": 36.55, "cus_rate": 0.22, "truck_bulk_min": 45.15, "truck_bulk_fee_mawb": 40.15, "truck_bulk_rate": 0.21, "truck_uld_min": 0.0, "truck_uld_fee": 36.55, "thc_gen_min": 1.2, "thc_gen_rate": 0.045, "thc_dg_min": 1.65, "thc_dg_rate": 0.048, "thc_pha_min": 1.65, "thc_pha_rate": 0.048, "st_gen_mawb_fee": 42.4, "st_gen_rate_1_20": 13.7, "st_gen_rate_21plus": 24.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 45.0, "st_cool_rate_1_20": 22.0, "st_cool_rate_21plus": 32.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 45.0, "st_dg_rate_1_20": 15.0, "st_dg_rate_21plus": 24.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}, "VLC": {"currency": "EUR", "sec_min": 28.17, "sec_rate": 0.3, "cus_min": 36.57, "cus_rate": 0.24, "truck_bulk_min": 45.17, "truck_bulk_fee_mawb": 40.17, "truck_bulk_rate": 0.23, "truck_uld_min": 0.0, "truck_uld_fee": 36.57, "thc_gen_min": 1.22, "thc_gen_rate": 0.047, "thc_dg_min": 1.67, "thc_dg_rate": 0.05, "thc_pha_min": 1.67, "thc_pha_rate": 0.05, "st_gen_mawb_fee": 43.4, "st_gen_rate_1_20": 14.7, "st_gen_rate_21plus": 25.9, "st_gen_free_days": 5.0, "st_cool_mawb_fee": 46.0, "st_cool_rate_1_20": 23.0, "st_cool_rate_21plus": 33.0, "st_cool_free_days": 4.0, "st_dg_mawb_fee": 46.0, "st_dg_rate_1_20": 16.0, "st_dg_rate_21plus": 25.7, "st_dg_free_days": 6.0, "imp_doc_min": 0.0, "imp_doc_fee": 38.0}}, "routes": {"*": {"ALG": {"min": 105.0, "r0": 5.8, "r100": 5.15, "r300": 5.0, "r500": 4.75, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "AMM": {"min": 65.0, "r0": 4.15, "r100": 3.65, "r300": 3.17, "r500": 3.0, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "AMS": {"min": 40.0, "r0": 3.5, "r100": 2.1, "r300": 1.8, "r500": 1.6, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "ATH": {"min": 30.0, "r0": 4.0, "r100": 2.2, "r300": 2.2, "r500": 2.2, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "BCN": {"min": 40.0, "r0": 4.32, "r100": 2.1, "r300": 2.0, "r500": 1.85, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "BEY": {"min": 55.0, "r0": 5.75, "r100": 1.9, "r300": 1.9, "r500": 1.9, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "BKK": {"min": 40.0, "r0": 3.5, "r100": 2.5, "r300": 2.0, "r500": 1.9, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "BOM": {"min": 49.0, "r0": 3.25, "r100": 1.35, "r300": 1.35, "r500": 1.35, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "CAI": {"min": 60.0, "r0": 4.05, "r100": 3.45, "r300": 3.0, "r500": 2.78, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "CMN": {"min": 70.0, "r0": 4.5, "r100": 4.0, "r300": 3.7, "r500": 3.6, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "DXB": {"min": 40.0, "r0": 2.7, "r100": 2.35, "r300": 2.05, "r500": 1.85, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "FCO": {"min": 60.0, "r0": 4.2, "r100": 3.0, "r300": 3.0, "r500": 3.0, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "HKG": {"min": 40.0, "r0": 3.5, "r100": 2.1, "r300": 1.8, "r500": 1.6, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "IST": {"min": 75.0, "r0": 6.53, "r100": 4.5, "r300": 3.6, "r500": 3.38, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "JED": {"min": 40.0, "r0": 2.7, "r100": 2.5, "r300": 2.25, "r500": 2.1, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "LIS": {"min": 45.0, "r0": 9.45, "r100": 3.0, "r300": 3.0, "r500": 3.0, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "MAD": {"min": 45.0, "r0": 5.55, "r100": 2.6, "r300": 2.6, "r500": 2.1, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "MLA": {"min": 37.0, "r0": 7.0, "r100": 3.3, "r300": 3.15, "r500": 2.89, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "MRS": {"min": 60.0, "r0": 4.8, "r100": 3.0, "r300": 3.0, "r500": 2.5, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "NKC": {"min": 105.0, "r0": 6.75, "r100": 6.0, "r300": 6.0, "r500": 5.5, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "PUS": {"min": 40.0, "r0": 3.5, "r100": 2.1, "r300": 1.8, "r500": 1.6, "fsc": 0.35, "ssc": 0.1, "transit": 3.0, "notes": "tarifa por defecto a este destino"}, "TIA": {"min": 40.0, "r0": 3.5, "r100": 2.1, "r300": 1.8, "r500": 1.6, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "TIP": {"min": 100.0, "r0": 5.9, "r100": 2.6, "r300": 2.15, "r500": 2.0, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "TLV": {"min": 125.0, "r0": 7.0, "r100": 6.15, "r300": 6.0, "r500": 5.5, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "TUN": {"min": 60.0, "r0": 4.8, "r100": 3.0, "r300": 3.0, "r500": 2.5, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}, "VLC": {"min": 56.0, "r0": 6.5, "r100": 3.25, "r300": 3.25, "r500": 2.63, "fsc": 0.35, "ssc": 0.1, "transit": 2.0, "notes": "tarifa por defecto a este destino"}}, "BCN": {"CAI": {"min": 55.0, "r0": 3.95, "r100": 3.3, "r300": 2.9, "r500": 2.6, "fsc": 0.35, "ssc": 0.1, "transit": 1.0, "notes": "acuerdo directo BCN-CAI (override de ejemplo)"}}}};
+SDGData.load = function(){ var b = window.__SDG_TARIFFS__; b.source='local'; return Promise.resolve(b); };
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+code,name,country,region,active
+ALG,ALGIER,Algeria,North Africa,yes
+AMM,AMMAN,Jordan,Middle East,yes
+AMS,AMSTERDAM,Netherlands,Europe,yes
+ATH,ATHENS,Greece,Europe,yes
+BCN,BARCELONA,Spain,Europe,yes
+BEY,BEYRUT,Lebanon,Middle East,yes
+BKK,BANGKOK,Thailand,Asia,yes
+BOM,MUMBAI,India,Asia,yes
+CAI,CAIRO,Egypt,North Africa,yes
+CMN,CASABLANCA,Morocco,North Africa,yes
+DXB,DUBAI,United Arab Emirates,Middle East,yes
+FCO,ROMA,Italy,Europe,yes
+HKG,HONG KONG,China,Asia,yes
+IST,ISTANBUL,Turkey,Europe / Middle East,yes
+JED,JEDDAH,Saudi Arabia,Middle East,yes
+LIS,LISBON,Portugal,Europe,yes
+MAD,MADRID,Spain,Europe,yes
+MLA,LUQA,Malta,Europe,yes
+MRS,MARSEILLE,France,Europe,yes
+NKC,NOUAKCHOTT,Mauritania,North Africa,yes
+PUS,BUSAN,South Korea,Asia,yes
+TIA,TIRANA,Albania,Europe,yes
+TIP,TRIPOLI,Libya,North Africa,yes
+TLV,TEL AVIV,Israel,Middle East,yes
+TUN,TUNIS,Tunisia,North Africa,yes
+VLC,VALENCIA,Spain,Europe,yes
