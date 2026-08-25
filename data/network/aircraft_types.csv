@@ -1,0 +1,33 @@
+model,icao,iata,category
+AIRBUS A321P2F,A321,321.0,TURBINE AIRCRAFT
+ATR 72-600F,AT76,ATR,TURBO-HELIX AIRCRAFT
+HYZON CLASS 8,,,HYDROGEN TRUCK
+AIRBUS A350F,A35K,351.0,TURBINE AIRCRAFT
+Natilus 60T,,,TURBINE AIRCRAFT
+NAME,PLANE,IATA ID,MODEL
+Olivia Rodes,Olivia,CA-SDKK,AIRBUS A321P2F
+Nannerl Mozart,Nannerl,CA-SDGG,ATR 72-600F
+Alondra Parra,Alondra,CA-SDJJ,ATR 72-600F
+Francesca Caccini,Francesca,CA-SDAA,HYZON CLASS 8
+Maria Rodrigo,Maria,CA-SDLL,HYZON CLASS 8
+Barbara Strozzi,Barbara,CA-SDBB,Natilus 60T
+Marianne Von Martinez,Marianne,CA-SDCC,ATR 72-600F
+Fanny Mendelssohn Hensel,Fanny,CA-SDDD,AIRBUS A350F
+Teresa Carreño,Teresa,CA-SDEE,ATR 72-600F
+Amy Beach,Amy,CA-SDFF,ATR 72-600F
+Lili Boulanger,Lili,CA-SDHH,AIRBUS A350F
+Florance Beatrice Price,Florence,CA-SDII,AIRBUS A321P2F
+3.0,1.0,2.0,4.0
+3.0,Equipments,2.0,4.0
+L,Desc,Tare weight,W
+192.0,LD-3,82.0,137.0
+192.0,LD-3 Reefer Air container,210.0,137.0
+241.0,LD3-45 (A321),80.0,140.0
+223.5,Pallet 88” x 108”,76.0,274.3
+223.5,"Pallet 88""x62""",38.0,157.5
+223.5,"Pallet 88""x125""",86.0,317.5
+223.5,AY-AAA Air container (A321),230.0,317.5
+243.8,"Pallet 96""x125""",120.0,317.5
+243.8,AMA Container,350.0,317.5
+243.8,AMD Container,305.0,317.5
+407.0,AMF Container,280.0,244.0

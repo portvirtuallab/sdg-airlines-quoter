@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-sync_sheet.py — Descarga las pestañas del Google Sheet a data/*.csv.
+sync_sheet.py — Pulls the Google Sheet tabs down into data/*.csv.
 
     python scripts/sync_sheet.py
 
-Requisito: el documento debe estar compartido como "cualquier persona con el
-enlace puede ver". El id y los nombres de pestaña salen de data/config.json
-→ data_source. Las pestañas deben tener exactamente las mismas cabeceras que
-los CSV del repo.
+The document must be shared as "anyone with the link can view". The sheet id
+and tab names come from data/config.json -> data_source. Each tab needs exactly
+the same header row as the matching CSV in the repository.
 """
 import json
 import sys
@@ -38,15 +37,15 @@ def main():
             with urllib.request.urlopen(url, timeout=30) as r:
                 body = r.read().decode("utf-8")
         except Exception as exc:  # noqa: BLE001
-            sys.exit(f"✘ No se pudo leer la pestaña '{tab}': {exc}\n"
-                     f"  Comprueba el id de la hoja y que esté compartida con el enlace.")
+            sys.exit(f"✘ Could not read the '{tab}' tab: {exc}\n"
+                     f"  Check the sheet id and that link sharing is on.")
         if body.lstrip().startswith("<"):
-            sys.exit(f"✘ La pestaña '{tab}' devolvió HTML en lugar de CSV — "
-                     f"lo normal es que la hoja no sea pública.")
+            sys.exit(f"✘ The '{tab}' tab returned HTML instead of CSV — "
+                     f"the sheet is most likely not shared.")
         (DATA / filename).write_text(body, encoding="utf-8")
-        print(f"✔ {tab} → data/{filename} ({len(body.splitlines()) - 1} filas)")
+        print(f"✔ {tab} → data/{filename} ({len(body.splitlines()) - 1} rows)")
 
-    print("\nAhora valida y compila:  python scripts/build.py")
+    print("\nNow validate and build:  python scripts/build.py")
 
 
 if __name__ == "__main__":

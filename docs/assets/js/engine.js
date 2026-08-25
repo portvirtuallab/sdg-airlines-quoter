@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════
-   SDG Airlines — motor de cálculo
-   Sin DOM, sin dependencias. Funciona en navegador y en Apps Script.
-   Toda la aritmética vive aquí; la interfaz sólo pinta el resultado.
+   SDG AIRLINES — quotation engine
+   No DOM, no dependencies. Runs in the browser and in Apps Script.
+   All arithmetic lives here; the interface only renders the result.
    ══════════════════════════════════════════════════════════════ */
 (function (root) {
   "use strict";
@@ -15,8 +15,8 @@
     return Math.ceil((n - 1e-9) / step) * step;
   }
 
-  /* ── Peso facturable ────────────────────────────────────────
-     piezas: [{ qty, weightKg, l, w, h }]  (dimensiones en cm)     */
+  /* ── Chargeable weight ──────────────────────────────────────
+     pieces: [{ qty, weightKg, l, w, h }]   dimensions in cm       */
   function chargeableWeight(pieces, volumetricFactor, rounding) {
     var vf = volumetricFactor || 167;
     var gross = 0, volumetric = 0;
@@ -31,32 +31,32 @@
       gross: round2(gross),
       volumetric: round2(volumetric),
       chargeable: round2(ceilTo(cw, rounding || 0)),
-      basis: volumetric > gross ? "volumen" : "peso real"
+      basis: volumetric > gross ? "volumetric" : "actual"
     };
   }
 
-  /* ── Búsqueda de tarifa de flete ────────────────────────────
-     Prioridad: par O/D exacto → comodín "*" hacia el destino.     */
+  /* ── Freight rate lookup ────────────────────────────────────
+     Priority: exact O/D pair, then the "*" wildcard to that dest. */
   function findRoute(data, origin, destination) {
     var r = data.routes || {};
     if (r[origin] && r[origin][destination]) {
-      return { rate: r[origin][destination], source: "acuerdo " + origin + "–" + destination };
+      return { rate: r[origin][destination], source: origin + "\u2013" + destination + " contract rate" };
     }
     if (r["*"] && r["*"][destination]) {
-      return { rate: r["*"][destination], source: "tarifa general a " + destination };
+      return { rate: r["*"][destination], source: "published rate to " + destination };
     }
     return null;
   }
 
   function rateForWeight(rate, kg) {
-    if (kg >= 500) return { perKg: rate.r500, band: "+500 kg" };
-    if (kg >= 300) return { perKg: rate.r300, band: "300–499 kg" };
-    if (kg >= 100) return { perKg: rate.r100, band: "100–299 kg" };
-    return { perKg: rate.r0, band: "menos de 100 kg" };
+    if (kg >= 500) return { perKg: rate.r500, band: "500 kg and over" };
+    if (kg >= 300) return { perKg: rate.r300, band: "300\u2013499 kg" };
+    if (kg >= 100) return { perKg: rate.r100, band: "100\u2013299 kg" };
+    return { perKg: rate.r0, band: "under 100 kg" };
   }
 
-  /* Salto de tramo (weight break): si facturar al siguiente escalón
-     sale más barato, se factura a ese peso. Es práctica IATA real. */
+  /* Weight break: when billing at the next breakpoint costs less,
+     the shipment is rated at that weight. Standard IATA practice.  */
   function bestFreight(rate, cw) {
     var direct = rateForWeight(rate, cw);
     var best = {
@@ -79,12 +79,12 @@
     return best;
   }
 
-  /* ── Fase 1: flete + THC en origen ──────────────────────────── */
+  /* ── Phase 1: freight and origin handling ───────────────────── */
   function freightQuote(data, input) {
     var lines = [];
     var found = findRoute(data, input.origin, input.destination);
     if (!found) {
-      return { error: "No hay tarifa publicada para " + input.origin + " → " + input.destination };
+      return { error: "No rate published for " + input.origin + " \u2192 " + input.destination };
     }
     var rate = found.rate;
     var cw = Number(input.chargeableWeight) || 0;
@@ -92,48 +92,39 @@
     var fr = bestFreight(rate, cw);
 
     lines.push({
-      code: "FRT",
-      label: "Flete aéreo",
-      detail: found.source + " · " + fr.band + " a " + fr.perKg.toFixed(3) + "/kg" +
-        (fr.weightBreak ? " · facturado a " + fr.billedWeight + " kg por salto de tramo" : "") +
-        (fr.minApplied ? " · mínimo aplicado" : ""),
+      code: "WT",
+      due: "C",
+      label: "Weight charge",
+      detail: found.source + " \u00b7 " + fr.band + " at " + fr.perKg.toFixed(3) + "/kg" +
+        (fr.weightBreak ? " \u00b7 rated at " + fr.billedWeight + " kg on the weight break" : "") +
+        (fr.minApplied ? " \u00b7 minimum charge applied" : ""),
       amount: fr.amount
     });
 
-    if (rate.fsc) {
-      lines.push({
-        code: "FSC",
-        label: "Recargo de combustible",
-        detail: rate.fsc.toFixed(3) + "/kg × " + fr.billedWeight + " kg",
-        amount: round2(rate.fsc * fr.billedWeight)
-      });
-    }
-    if (rate.ssc) {
-      lines.push({
-        code: "SSC",
-        label: "Recargo de seguridad",
-        detail: rate.ssc.toFixed(3) + "/kg × " + fr.billedWeight + " kg",
-        amount: round2(rate.ssc * fr.billedWeight)
-      });
-    }
+    lines.push(...surchargeLines(data, {
+      km: Number(input.distanceKm) || distanceBetween(data, input.origin, input.destination),
+      chargeableWeight: cw, freight: fr.amount, customs: input.customs,
+    }));
 
-    // THC en salida: se usa la tabla del aeropuerto de origen.
+    // Origin terminal handling, priced from the origin airport table.
     var org = data.arrival_charges[input.origin];
     if (org) {
       var fam = thcFamily(data, input.cargoType);
       var min = org["thc_" + fam + "_min"], per = org["thc_" + fam + "_rate"];
       lines.push({
-        code: "THC-DEP",
-        label: "THC en origen (" + famLabel(fam) + ")",
-        detail: "máx(" + min.toFixed(2) + " , " + per.toFixed(3) + "/kg × " + cw + " kg)",
+        code: "TH",
+        due: "C",
+        label: "Terminal handling at origin \u2014 " + famLabel(fam),
+        detail: "greater of " + min.toFixed(2) + " or " + per.toFixed(3) + "/kg \u00d7 " + cw + " kg",
         amount: round2(Math.max(min, per * cw))
       });
     }
 
     lines.push({
-      code: "AWB",
-      label: "Emisión de AWB",
-      detail: mawbs + " MAWB",
+      code: "AW",
+      due: "A",
+      label: "Air waybill fee",
+      detail: mawbs + " master air waybill(s) issued",
       amount: round2(25 * mawbs)
     });
 
@@ -142,10 +133,52 @@
       destination: input.destination,
       chargeableWeight: cw,
       billedWeight: fr.billedWeight,
+      rateLine: {
+        pieces: Number(input.pieces) || 1,
+        grossWeight: Number(input.grossWeight) || cw,
+        rateClass: fr.minApplied ? "M" : (fr.billedWeight < 100 ? "N" : "Q"),
+        chargeableWeight: fr.billedWeight,
+        rate: fr.perKg,
+        total: fr.amount
+      },
       transitDays: rate.transit || null,
       lines: lines,
       subtotal: round2(lines.reduce(function (s, l) { return s + l.amount; }, 0))
     };
+  }
+
+  function distanceBetween(data, o, d) {
+    var m = data.distances || {};
+    return (m[o] && m[o][d]) || (m[d] && m[d][o]) || 0;
+  }
+
+  /* Surcharges come from tariffs/surcharges.csv. One marked applies="disabled"
+     still appears on the quotation, priced at zero and flagged, so the reader
+     can see the charge exists and is simply not in force today. */
+  function surchargeLines(data, ctx) {
+    return (data.surcharges || []).map(function (s) {
+      var off = s.applies === "disabled" ||
+                (s.applies === "customs_required" && !ctx.customs);
+      var amount = 0, basis = "";
+      if (s.basis === "flat") { amount = s.amount; basis = "flat charge per shipment"; }
+      else if (s.basis === "per_kg") {
+        amount = s.amount * ctx.chargeableWeight;
+        basis = s.amount.toFixed(3) + "/kg \u00d7 " + ctx.chargeableWeight + " kg";
+      } else if (s.basis === "per_km") {
+        amount = s.amount * ctx.km;
+        basis = s.amount.toFixed(3) + "/km \u00d7 " + Math.round(ctx.km) + " km";
+      } else if (s.basis === "percent_freight") {
+        amount = s.amount * ctx.freight;
+        basis = (s.amount * 100).toFixed(1) + "% of the weight charge";
+      }
+      return {
+        code: s.code, due: "C", label: s.label,
+        detail: off ? (s.applies === "disabled" ? "not in force for this shipment"
+                                                : "customs clearance not required") : basis,
+        amount: off ? 0 : round2(amount),
+        inactive: off,
+      };
+    });
   }
 
   function thcFamily(data, cargoTypeId) {
@@ -157,36 +190,39 @@
     return t ? t.storage : "gen";
   }
   function famLabel(f) {
-    return { gen: "carga general", dg: "mercancías peligrosas", pha: "farma / temperatura", cool: "cámara de frío" }[f] || f;
+    return { gen: "general cargo", dg: "dangerous goods", pha: "pharma / temperature controlled", cool: "cool chamber" }[f] || f;
   }
 
-  /* ── Fase 2: cargos de llegada en destino ───────────────────── */
+  /* ── Phase 2: charges at the destination airport ────────────── */
   function arrivalQuote(data, input) {
     var t = data.arrival_charges[input.airport];
-    if (!t) return { error: "Sin tabla de cargos de llegada para " + input.airport };
+    if (!t) return { error: "No arrival tariff on file for " + input.airport };
 
     var cw = Number(input.chargeableWeight) || 0;
     var mawbs = Math.max(1, Number(input.mawbs) || 1);
     var lines = [];
 
     lines.push({
-      code: "SEC",
-      label: "Seguridad en llegada",
-      detail: "máx(" + t.sec_min.toFixed(2) + " , " + t.sec_rate.toFixed(3) + "/kg × " + cw + " kg)",
+      code: "SD",
+      due: "C",
+      label: "Security at arrival",
+      detail: "greater of " + t.sec_min.toFixed(2) + " or " + t.sec_rate.toFixed(3) + "/kg \u00d7 " + cw + " kg",
       amount: round2(Math.max(t.sec_min, t.sec_rate * cw))
     });
 
     if (input.customs) {
       lines.push({
-        code: "CUS",
-        label: "Formalidades aduaneras",
-        detail: "máx(" + t.cus_min.toFixed(2) + " , " + t.cus_rate.toFixed(3) + "/kg × " + cw + " kg)",
+        code: "CH",
+        due: "A",
+        label: "Customs clearance formalities",
+        detail: "greater of " + t.cus_min.toFixed(2) + " or " + t.cus_rate.toFixed(3) + "/kg \u00d7 " + cw + " kg",
         amount: round2(Math.max(t.cus_min, t.cus_rate * cw))
       });
       lines.push({
-        code: "DOC",
-        label: "Gestión de documentos de importación",
-        detail: t.imp_doc_fee.toFixed(2) + " por MAWB × " + mawbs,
+        code: "DB",
+        due: "A",
+        label: "Import documentation handling",
+        detail: t.imp_doc_fee.toFixed(2) + " per MAWB \u00d7 " + mawbs,
         amount: round2(Math.max(t.imp_doc_min, t.imp_doc_fee * mawbs))
       });
     }
@@ -194,26 +230,29 @@
     if (input.handling === "ULD") {
       var ulds = Math.max(1, Number(input.ulds) || 1);
       lines.push({
-        code: "TRK",
-        label: "Carga a camión — ULD",
-        detail: t.truck_uld_fee.toFixed(2) + " por ULD × " + ulds,
+        code: "LU",
+        due: "C",
+        label: "Truck loading \u2014 ULD",
+        detail: t.truck_uld_fee.toFixed(2) + " per ULD \u00d7 " + ulds,
         amount: round2(Math.max(t.truck_uld_min, t.truck_uld_fee * ulds))
       });
     } else {
       lines.push({
-        code: "TRK",
-        label: "Carga a camión — granel",
-        detail: "máx(" + t.truck_bulk_min.toFixed(2) + " , " + t.truck_bulk_fee_mawb.toFixed(2) +
-          " × " + mawbs + " MAWB + " + t.truck_bulk_rate.toFixed(3) + "/kg × " + cw + " kg)",
+        code: "LB",
+        due: "C",
+        label: "Truck loading \u2014 bulk",
+        detail: "greater of " + t.truck_bulk_min.toFixed(2) + " or " + t.truck_bulk_fee_mawb.toFixed(2) +
+          " \u00d7 " + mawbs + " MAWB + " + t.truck_bulk_rate.toFixed(3) + "/kg \u00d7 " + cw + " kg",
         amount: round2(Math.max(t.truck_bulk_min, t.truck_bulk_fee_mawb * mawbs + t.truck_bulk_rate * cw))
       });
     }
 
     var fam = thcFamily(data, input.cargoType);
     lines.push({
-      code: "THC-ARR",
-      label: "THC en destino (" + famLabel(fam) + ")",
-      detail: "máx(" + t["thc_" + fam + "_min"].toFixed(2) + " , " + t["thc_" + fam + "_rate"].toFixed(3) + "/kg × " + cw + " kg)",
+      code: "TD",
+      due: "C",
+      label: "Terminal handling at destination \u2014 " + famLabel(fam),
+      detail: "greater of " + t["thc_" + fam + "_min"].toFixed(2) + " or " + t["thc_" + fam + "_rate"].toFixed(3) + "/kg \u00d7 " + cw + " kg",
       amount: round2(Math.max(t["thc_" + fam + "_min"], t["thc_" + fam + "_rate"] * cw))
     });
 
@@ -246,20 +285,21 @@
     var units = Math.ceil(cw / unit);
 
     var amount = fee * mawbs + units * (r1 * d1 + r2 * d2);
-    var detail = free + " días libres · " + units + " × " + unit + " kg · " +
-      d1 + " día(s) a " + r1.toFixed(2) + (d2 ? " + " + d2 + " día(s) a " + r2.toFixed(2) : "") +
-      " + " + fee.toFixed(2) + "/MAWB";
-    if (payable === 0) detail = days + " día(s) dentro de los " + free + " días libres";
+    var detail = free + " free days \u00b7 " + units + " \u00d7 " + unit + " kg \u00b7 " +
+      d1 + " day(s) at " + r1.toFixed(2) + (d2 ? " + " + d2 + " day(s) at " + r2.toFixed(2) : "") +
+      " + " + fee.toFixed(2) + " per MAWB";
+    if (payable === 0) detail = days + " day(s), within the " + free + " free days";
 
     return {
-      code: "STO",
-      label: "Almacenaje — " + famLabel(fam),
+      code: "ST",
+      due: "C",
+      label: "Storage \u2014 " + famLabel(fam),
       detail: detail,
       amount: round2(amount)
     };
   }
 
-  /* ── Cotización completa ────────────────────────────────────── */
+  /* ── Complete quotation ─────────────────────────────────────── */
   function fullQuote(data, input) {
     var cur = input.currency || data.config.base_currency;
     var fx = ((data.config.currencies || {})[cur] || {}).rate_from_base || 1;
@@ -282,7 +322,8 @@
     function convert(block) {
       return {
         lines: block.lines.map(function (l) {
-          return { code: l.code, label: l.label, detail: l.detail, amount: round2(l.amount * fx) };
+          return { code: l.code, due: l.due, label: l.label, detail: l.detail,
+                   inactive: l.inactive, amount: round2(l.amount * fx) };
         }),
         subtotal: round2(block.subtotal * fx)
       };
@@ -298,6 +339,11 @@
       transitDays: dep.transitDays,
       chargeableWeight: dep.chargeableWeight,
       billedWeight: dep.billedWeight,
+      rateLine: (function () {
+        var rl = dep.rateLine;
+        return { pieces: rl.pieces, grossWeight: rl.grossWeight, rateClass: rl.rateClass,
+                 chargeableWeight: rl.chargeableWeight, rate: round2(rl.rate * fx), total: round2(rl.total * fx) };
+      })(),
       departure: d,
       arrival: a,
       total: round2(d.subtotal + a.subtotal),
@@ -330,6 +376,8 @@
     freightQuote: freightQuote,
     arrivalQuote: arrivalQuote,
     fullQuote: fullQuote,
+    surchargeLines: surchargeLines,
+    distanceBetween: distanceBetween,
     formatMoney: formatMoney,
     round2: round2
   };

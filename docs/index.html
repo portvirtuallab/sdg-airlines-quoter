@@ -1,85 +1,86 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDG Airlines — Herramientas</title>
+<title>SDG Airlines — Air cargo tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,300..900&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/sdg.css">
 </head>
 <body>
 
-<header class="topbar">
-  <span class="topbar-brand">SDG Airlines</span>
-  <div class="topbar-sep"></div>
-  <div class="topbar-sub">Air Cargo Division</div>
-  <div class="topbar-right">
-    <div class="tb-pill">Escola Europea · Intermodal Transport</div>
-    <div class="tb-pill sim">⬡ Simulación</div>
+<header class="carrier">
+  <div class="carrier-in">
+    <span class="mark"><span class="prefix">083</span>SDG Airlines</span>
+    <span class="carrier-role">Air cargo</span>
+    <span class="carrier-end">
+      <span class="flag">Escola Europea &middot; Intermodal Transport</span>
+      <span class="flag sim">Simulation</span>
+    </span>
   </div>
 </header>
 
-<div class="hero">
-  <div class="hero-inner">
-    <div class="hero-label">Herramientas de simulación · Port Virtual Lab</div>
-    <h1 class="hero-h1">Suite de<br><span class="stripe">cotización</span></h1>
-    <div class="hero-meta">
-      <div class="hm-cell"><span class="hm-l">Red</span><span class="hm-v" id="net-airports">—</span></div>
-      <div class="hm-cell"><span class="hm-l">Tarifas de flete</span><span class="hm-v" id="net-lanes">—</span></div>
-      <div class="hm-cell"><span class="hm-l">Datos de</span><span class="hm-v gold" id="net-updated">—</span></div>
-      <div class="hm-cell"><span class="hm-l">Estado</span><span class="hm-v ok">Operativo</span></div>
-    </div>
+<div class="masthead">
+  <div>
+    <div class="eyebrow">Port Virtual Lab &middot; air cargo division</div>
+    <h1 class="headline">Cargo<span class="thin">rating desk</span></h1>
+  </div>
+  <div class="strip">
+    <div class="strip-cell"><span class="strip-k">Network</span><span class="strip-v" id="n-airports">—</span></div>
+    <div class="strip-cell"><span class="strip-k">Published rates</span><span class="strip-v" id="n-lanes">—</span></div>
+    <div class="strip-cell"><span class="strip-k">Tariffs of</span><span class="strip-v" id="n-updated">—</span></div>
+    <div class="strip-cell"><span class="strip-k">Status</span><span class="strip-v ok">Open</span></div>
   </div>
 </div>
 
-<div class="cards">
-  <a class="card" href="quote.html">
-    <div class="card-bar"></div>
-    <div class="card-body">
-      <div class="card-icon">✈</div>
-      <div class="card-label">Origen → destino</div>
-      <div class="card-title">Cotización<br>completa</div>
-      <div class="card-desc">Flete aéreo con tramos de peso y salto de tramo, recargos, THC en salida y todos los cargos de llegada. Sale una cotización imprimible con referencia y validez.</div>
+<div class="desks">
+  <a class="desk" href="quote.html">
+    <div class="desk-n">Origin to destination</div>
+    <div class="desk-b">
+      <div class="desk-t">Rate<br>quotation</div>
+      <div class="desk-x">Weight and volume from the consignment, the rate band and any weight break, surcharges, origin handling and every charge waiting at the destination station. Comes out as an air waybill rate line you can print and hand over.</div>
     </div>
-    <div class="card-foot">
-      <div><span class="tag">Flete</span><span class="tag">Recargos</span><span class="tag">Llegada</span></div>
-      <span class="card-cta">Abrir →</span>
+    <div class="desk-f">
+      <span class="desk-codes">WT &middot; MY &middot; SC &middot; AW</span>
+      <span class="desk-go">Open &rarr;</span>
     </div>
   </a>
 
-  <a class="card" href="arrival.html">
-    <div class="card-bar gold"></div>
-    <div class="card-body">
-      <div class="card-icon gold-bg">🛬</div>
-      <div class="card-label">Sólo destino</div>
-      <div class="card-title">Cargos de<br>llegada</div>
-      <div class="card-desc">Seguridad, aduana, carga a camión, THC, almacenaje por tramos con días libres y documentos de importación en el aeropuerto de destino.</div>
+  <a class="desk" href="arrival.html">
+    <div class="desk-n">Destination station only</div>
+    <div class="desk-b">
+      <div class="desk-t">Arrival<br>charges</div>
+      <div class="desk-x">Security, customs clearance, truck loading in bulk or by ULD, terminal handling, tiered storage with free days, and import documentation. Everything the consignee pays before the cargo leaves the warehouse.</div>
     </div>
-    <div class="card-foot">
-      <div><span class="tag">Seguridad</span><span class="tag">Aduana</span><span class="tag">Almacenaje</span></div>
-      <span class="card-cta">Abrir →</span>
+    <div class="desk-f">
+      <span class="desk-codes">SD &middot; CH &middot; TD &middot; ST</span>
+      <span class="desk-go">Open &rarr;</span>
     </div>
   </a>
 </div>
 
-<footer>
-  <div class="f-brand">SDG Airlines · Air Cargo Division · Escola Europea · Port Virtual Lab</div>
-  <div class="f-note">Simulación educativa · Sin uso comercial</div>
+<footer class="foot">
+  <div class="foot-in">
+    <span>SDG Airlines &middot; Air Cargo Division</span>
+    <span>Escola Europea &mdash; Intermodal Transport &middot; Port Virtual Lab</span>
+    <span>Training simulation &middot; not for commercial use</span>
+  </div>
 </footer>
 
 <script src="assets/js/engine.js"></script>
 <script src="assets/js/data.js"></script>
 <script>
 SDGData.load().then(function (d) {
-  document.getElementById('net-airports').textContent =
-    d.airports.filter(function (a) { return a.active; }).length + ' aeropuertos';
+  document.getElementById('n-airports').textContent =
+    d.airports.filter(function (a) { return a.active; }).length + ' stations';
   var lanes = 0;
   Object.keys(d.routes).forEach(function (o) { lanes += Object.keys(d.routes[o]).length; });
-  document.getElementById('net-lanes').textContent = lanes + ' tarifas';
-  document.getElementById('net-updated').textContent = (d.generated_at || '').slice(0, 10) || '—';
+  document.getElementById('n-lanes').textContent = lanes + ' lanes';
+  document.getElementById('n-updated').textContent = (d.generated_at || '').slice(0, 10) || '—';
 }).catch(function (e) {
-  document.getElementById('net-airports').textContent = 'sin datos';
+  document.getElementById('n-airports').textContent = 'unavailable';
   console.error(e);
 });
 </script>

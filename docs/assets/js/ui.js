@@ -1,13 +1,14 @@
-/* ══════════════════════════════════════════════════════════════
-   SDG Airlines — interfaz
-   Los desplegables se construyen a partir de los datos, así que
-   añadir un aeropuerto es añadir una fila al CSV. Nada más.
-   ══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   SDG AIRLINES — interface
+   Every dropdown is built from the data, so adding an airport is
+   adding a row to a CSV. Nothing here needs editing for that.
+   ═══════════════════════════════════════════════════════════════ */
 (function (root) {
   "use strict";
 
   var DATA = null, MODE = "full", LAST = null;
   var $ = function (id) { return document.getElementById(id); };
+  var E = function () { return root.SDGEngine; };
 
   function el(tag, attrs, html) {
     var e = document.createElement(tag);
@@ -15,135 +16,195 @@
     if (html != null) e.innerHTML = html;
     return e;
   }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
 
+  /* ── option builders ─────────────────────────────────────────── */
   function airportOptions(select, placeholder) {
     select.innerHTML = "";
     select.appendChild(el("option", { value: "" }, placeholder));
     var byRegion = {};
     DATA.airports.filter(function (a) { return a.active; }).forEach(function (a) {
-      (byRegion[a.region || "Otros"] = byRegion[a.region || "Otros"] || []).push(a);
+      (byRegion[a.region || "Other"] = byRegion[a.region || "Other"] || []).push(a);
     });
     Object.keys(byRegion).sort().forEach(function (region) {
       var g = el("optgroup", { label: region });
       byRegion[region].sort(function (x, y) { return x.code < y.code ? -1 : 1; }).forEach(function (a) {
-        g.appendChild(el("option", { value: a.code }, a.code + " — " + a.name + " (" + a.country + ")"));
+        g.appendChild(el("option", { value: a.code }, a.code + "  " + a.name + " \u00b7 " + a.country));
       });
       select.appendChild(g);
     });
   }
-
   function cargoOptions(select) {
     select.innerHTML = "";
     DATA.config.cargo_types.forEach(function (c) {
       select.appendChild(el("option", { value: c.id }, c.label));
     });
   }
-
   function currencyOptions(select) {
     select.innerHTML = "";
     Object.keys(DATA.config.currencies).forEach(function (c) {
-      select.appendChild(el("option", { value: c }, c + " — " + DATA.config.currencies[c].label));
+      select.appendChild(el("option", { value: c }, c + " \u2014 " + DATA.config.currencies[c].label));
     });
   }
 
-  /* ── piezas ────────────────────────────────────────────────── */
-  function pieceRow(values) {
+  /* ── consignment lines ───────────────────────────────────────── */
+  function consignmentLine(values) {
     var v = values || { qty: 1, weightKg: 100, l: 60, w: 40, h: 30 };
-    var row = el("div", { class: "piece-row" });
-    row.innerHTML =
-      '<div class="field"><label>Bultos</label><input type="number" min="1" step="1" data-k="qty" value="' + v.qty + '"></div>' +
-      '<div class="field"><label>Peso por bulto (kg)</label><input type="number" min="0" step="0.1" data-k="weightKg" value="' + v.weightKg + '"></div>' +
-      '<div class="field"><label>Largo (cm)</label><input type="number" min="0" data-k="l" value="' + v.l + '"></div>' +
-      '<div class="field"><label>Ancho (cm)</label><input type="number" min="0" data-k="w" value="' + v.w + '"></div>' +
-      '<div class="field"><label>Alto (cm)</label><input type="number" min="0" data-k="h" value="' + v.h + '"></div>' +
-      '<button class="btn-mini" type="button" title="Quitar esta línea" aria-label="Quitar esta línea">×</button>';
-    row.querySelector("button").onclick = function () {
-      if ($("pieces").querySelectorAll(".piece-row").length > 1) { row.remove(); refreshWeights(); }
+    var row = el("div", { class: "line" });
+    var cell = function (k, label, val, attrs) {
+      return '<div><span class="ll">' + label + '</span>' +
+        '<input type="number" ' + attrs + ' data-k="' + k + '" value="' + val +
+        '" aria-label="' + label + '"></div>';
     };
-    row.addEventListener("input", refreshWeights);
+    row.innerHTML =
+      cell("qty", "Pieces", v.qty, 'min="1" step="1"') +
+      cell("weightKg", "Weight each (kg)", v.weightKg, 'min="0" step="0.1"') +
+      cell("l", "Length (cm)", v.l, 'min="0"') +
+      cell("w", "Width (cm)", v.w, 'min="0"') +
+      cell("h", "Height (cm)", v.h, 'min="0"') +
+      '<button class="x" type="button" aria-label="Remove this line">\u00d7</button>';
+    row.querySelector("button").onclick = function () {
+      if ($("lines").querySelectorAll(".line").length > 1) { row.remove(); tally(); }
+    };
+    row.addEventListener("input", tally);
     return row;
   }
 
-  function readPieces() {
-    return Array.prototype.map.call($("pieces").querySelectorAll(".piece-row"), function (r) {
+  function readLines() {
+    return Array.prototype.map.call($("lines").querySelectorAll(".line"), function (r) {
       var o = {};
       r.querySelectorAll("input").forEach(function (i) { o[i.dataset.k] = parseFloat(i.value) || 0; });
       return o;
     });
   }
 
-  function refreshWeights() {
+  function tally() {
     var cfg = DATA.config;
-    var w = root.SDGEngine.chargeableWeight(readPieces(), cfg.volumetric_factor, cfg.chargeable_weight_rounding);
-    $("w-gross").textContent = w.gross.toFixed(1) + " kg";
-    $("w-vol").textContent = w.volumetric.toFixed(1) + " kg";
-    $("w-cw").textContent = w.chargeable.toFixed(1) + " kg";
-    $("w-basis").textContent = w.basis;
+    var rows = readLines();
+    var w = E().chargeableWeight(rows, cfg.volumetric_factor, cfg.chargeable_weight_rounding);
+    var pieces = rows.reduce(function (s, r) { return s + (r.qty || 0); }, 0);
+    $("t-pieces").textContent = pieces;
+    $("t-gross").textContent = w.gross.toFixed(1) + " kg";
+    $("t-vol").textContent = w.volumetric.toFixed(1) + " kg";
+    $("t-cw").textContent = w.chargeable.toFixed(1) + " kg";
+    $("t-basis").textContent = w.basis;
+    w.pieces = pieces;
     return w;
   }
 
-  function currentCW() {
-    var override = parseFloat($("cwOverride") && $("cwOverride").value);
-    if (override > 0) return override;
-    if (MODE === "arrival") return parseFloat($("cwDirect").value) || 0;
-    return refreshWeights().chargeable;
+  function weights() {
+    if (MODE === "arrival") {
+      var cw = parseFloat($("cwDirect").value) || 0;
+      return { chargeable: cw, gross: cw, pieces: parseInt($("pieces").value, 10) || 1 };
+    }
+    var w = tally();
+    var override = parseFloat($("cwOverride").value);
+    if (override > 0) w.chargeable = override;
+    return w;
   }
 
-  /* ── render ────────────────────────────────────────────────── */
-  function money(a) { return root.SDGEngine.formatMoney(a, $("currency").value, DATA); }
+  /* ── rendering ───────────────────────────────────────────────── */
+  function money(a) { return E().formatMoney(a, LAST.currency, DATA); }
+  function airportName(code) {
+    var a = DATA.airports.filter(function (x) { return x.code === code; })[0];
+    return a ? a.name : code;
+  }
 
-  function lineRow(l) {
-    return '<tr><td><div class="c-name"><span class="c-code">' + l.code + '</span>' + l.label + '</div>' +
-      '<div class="c-detail">' + l.detail + '</div></td>' +
+  function chargeRow(l) {
+    return '<tr' + (l.inactive ? ' class="off"' : '') + '><td><span class="c-code">' + esc(l.code) + '</span>' +
+      '<span class="c-name">' + esc(l.label) + '</span>' +
+      '<div class="c-detail">' + esc(l.detail) + '</div></td>' +
       '<td><span class="amt">' + money(l.amount) + '</span></td></tr>';
   }
 
   function render(q) {
     LAST = q;
+
+    if (q.rateLine) {
+      var rl = q.rateLine;
+      $("rateline").innerHTML =
+        '<div class="rateline-cap">Air waybill rate line \u00b7 box 22</div>' +
+        '<table><thead><tr>' +
+        '<th>No. of<br>pieces</th><th>Gross<br>weight</th><th>kg</th>' +
+        '<th>Rate<br>class</th><th>Chargeable<br>weight</th><th>Rate /<br>charge</th>' +
+        '<th>Total</th></tr></thead><tbody><tr>' +
+        '<td>' + rl.pieces + '</td>' +
+        '<td>' + rl.grossWeight.toFixed(1) + '</td>' +
+        '<td>K</td>' +
+        '<td><span class="rc" data-c="' + rl.rateClass + '">' + rl.rateClass + '</span></td>' +
+        '<td>' + rl.chargeableWeight.toFixed(1) + '</td>' +
+        '<td>' + rl.rate.toFixed(3) + '</td>' +
+        '<td>' + money(rl.total) + '</td>' +
+        '</tr></tbody></table>';
+      $("rateline").style.display = "";
+    } else {
+      $("rateline").style.display = "none";
+    }
+
     var body = "";
     if (q.departure) {
-      body += '<tr class="divider"><td colspan="2">Origen — flete y manipulación en salida</td></tr>';
-      body += q.departure.lines.map(lineRow).join("");
-      body += '<tr class="sub-row"><td>Subtotal salida</td><td class="amt">' + money(q.departure.subtotal) + '</td></tr>';
+      body += '<tr class="band"><td colspan="2">Charges at origin \u2014 prepaid</td></tr>';
+      body += q.departure.lines.map(chargeRow).join("");
+      body += '<tr class="sub-row"><td>Subtotal at origin</td><td><span class="amt">' + money(q.departure.subtotal) + '</span></td></tr>';
     }
-    body += '<tr class="divider"><td colspan="2">Destino — cargos de llegada</td></tr>';
-    body += q.arrival.lines.map(lineRow).join("");
+    body += '<tr class="band"><td colspan="2">Charges at destination \u2014 ' + esc(q.destination) + '</td></tr>';
+    body += q.arrival.lines.map(chargeRow).join("");
     if (q.departure) {
-      body += '<tr class="sub-row"><td>Subtotal llegada</td><td class="amt">' + money(q.arrival.subtotal) + '</td></tr>';
+      body += '<tr class="sub-row"><td>Subtotal at destination</td><td><span class="amt">' + money(q.arrival.subtotal) + '</span></td></tr>';
     }
-    $("bk-body").innerHTML = body;
-    $("res-total").textContent = money(q.total);
+    $("ledger").innerHTML = body;
 
-    $("res-route").textContent = q.departure ? q.origin + " → " + q.destination : q.destination;
-    var apName = function (c) {
-      var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
-      return a ? a.name : c;
-    };
-    $("res-sub").textContent = q.departure ? apName(q.origin) + " → " + apName(q.destination) : apName(q.destination);
+    $("grand").textContent = money(q.total);
+    $("doc-lane").innerHTML = q.departure
+      ? esc(q.origin) + '<span class="arrow">\u2192</span>' + esc(q.destination)
+      : esc(q.destination);
+    $("doc-cities").textContent = q.departure
+      ? airportName(q.origin) + " to " + airportName(q.destination)
+      : "Arrival at " + airportName(q.destination);
 
-    var cargoLabel = $("cargoType").options[$("cargoType").selectedIndex].textContent;
-    var chips = [q.reference, q.chargeableWeight + " kg facturables", cargoLabel, q.currency];
-    if (q.billedWeight && q.billedWeight !== q.chargeableWeight) chips.push("facturado a " + q.billedWeight + " kg");
-    if (q.transitDays) chips.push(q.transitDays + " días de tránsito");
-    chips.push("válida hasta " + q.validUntil);
-    $("res-chips").innerHTML = chips.map(function (c) { return '<span class="chip">' + c + "</span>"; }).join("");
+    var cargo = $("cargoType").options[$("cargoType").selectedIndex].textContent;
+    var meta = [
+      ["Quotation", q.reference],
+      ["Issued", new Date().toISOString().slice(0, 10)],
+      ["Valid until", q.validUntil],
+      ["Currency", q.currency],
+      ["Commodity", cargo]
+    ];
+    if (q.transitDays) meta.push(["Transit", q.transitDays + " days"]);
+    $("doc-ref").innerHTML = meta.map(function (m) {
+      return "<dt>" + esc(m[0]) + "</dt><dd>" + esc(m[1]) + "</dd>";
+    }).join("");
 
-    $("res").classList.add("on");
-    $("res").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("alert").innerHTML = (q.billedWeight && q.billedWeight !== q.chargeableWeight)
+      ? '<div class="alert"><strong>Rated on the weight break</strong>Chargeable weight is ' +
+        q.chargeableWeight + ' kg, but rating the shipment at ' + q.billedWeight +
+        ' kg falls into a cheaper band and costs less. The lower figure is quoted.</div>'
+      : "";
+
+    $("doc").classList.add("on");
+    $("doc").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function fail(msg) {
-    $("res-error").innerHTML = '<div class="err">' + msg + "</div>";
-    $("res").classList.add("on");
+    $("alert").innerHTML = '<div class="alert"><strong>Cannot quote</strong>' + esc(msg) + "</div>";
+    $("doc").classList.add("on");
+    $("doc").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  /* ── cálculo ───────────────────────────────────────────────── */
+  /* ── calculate ───────────────────────────────────────────────── */
   function calculate() {
-    $("res-error").innerHTML = "";
+    $("alert").innerHTML = "";
+    var w = weights();
     var input = {
       origin: MODE === "full" ? $("origin").value : null,
       destination: $("destination").value,
-      chargeableWeight: currentCW(),
+      chargeableWeight: w.chargeable,
+      grossWeight: w.gross,
+      pieces: w.pieces,
       mawbs: parseInt($("mawbs").value, 10) || 1,
       cargoType: $("cargoType").value,
       customs: $("customs").value === "yes",
@@ -153,26 +214,29 @@
       currency: $("currency").value
     };
 
-    if (MODE === "full" && !input.origin) return fail("Elige el aeropuerto de origen.");
-    if (!input.destination) return fail("Elige el aeropuerto de destino.");
-    if (MODE === "full" && input.origin === input.destination) return fail("Origen y destino no pueden coincidir.");
-    if (!(input.chargeableWeight > 0)) return fail("Introduce dimensiones o un peso facturable mayor que cero.");
+    if (MODE === "full" && !input.origin) return fail("Select an airport of origin.");
+    if (!input.destination) return fail("Select an airport of destination.");
+    if (MODE === "full" && input.origin === input.destination) return fail("Origin and destination must differ.");
+    if (!(input.chargeableWeight > 0)) return fail("Enter dimensions or a chargeable weight above zero.");
 
     var q;
     if (MODE === "full") {
-      q = root.SDGEngine.fullQuote(DATA, input);
+      q = E().fullQuote(DATA, input);
     } else {
-      var a = root.SDGEngine.arrivalQuote(DATA, {
+      var a = E().arrivalQuote(DATA, {
         airport: input.destination, chargeableWeight: input.chargeableWeight,
         mawbs: input.mawbs, cargoType: input.cargoType, customs: input.customs,
         handling: input.handling, ulds: input.ulds, storageDays: input.storageDays
       });
       if (a.error) return fail(a.error);
       var fx = (DATA.config.currencies[input.currency] || {}).rate_from_base || 1;
-      a.lines = a.lines.map(function (l) { return Object.assign({}, l, { amount: root.SDGEngine.round2(l.amount * fx) }); });
-      a.subtotal = root.SDGEngine.round2(a.subtotal * fx);
+      a.lines = a.lines.map(function (l) {
+        return { code: l.code, due: l.due, label: l.label, detail: l.detail, amount: E().round2(l.amount * fx) };
+      });
+      a.subtotal = E().round2(a.subtotal * fx);
       q = {
-        reference: "SDG-ARR-" + Math.floor(Math.random() * 9000 + 1000),
+        reference: "SDG-ARR-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") +
+                   "-" + input.destination + "-" + Math.floor(Math.random() * 9000 + 1000),
         currency: input.currency, destination: input.destination,
         chargeableWeight: input.chargeableWeight, arrival: a, total: a.subtotal,
         validUntil: new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10)
@@ -182,43 +246,44 @@
     render(q);
   }
 
-  /* ── exportar ──────────────────────────────────────────────── */
+  /* ── export ──────────────────────────────────────────────────── */
   function exportCSV() {
-    if (!LAST) return;
-    var rows = [["referencia", "origen", "destino", "concepto", "detalle", "importe", "moneda"]];
+    if (!LAST || !LAST.arrival) return;
+    var rows = [["reference", "origin", "destination", "code", "charge", "basis", "amount", "currency"]];
     var push = function (l) {
-      rows.push([LAST.reference, LAST.origin || "", LAST.destination, l.label, l.detail, l.amount, LAST.currency]);
+      rows.push([LAST.reference, LAST.origin || "", LAST.destination, l.code, l.label, l.detail, l.amount, LAST.currency]);
     };
     if (LAST.departure) LAST.departure.lines.forEach(push);
     LAST.arrival.lines.forEach(push);
-    rows.push([LAST.reference, LAST.origin || "", LAST.destination, "TOTAL", "", LAST.total, LAST.currency]);
+    rows.push([LAST.reference, LAST.origin || "", LAST.destination, "", "TOTAL", "", LAST.total, LAST.currency]);
     var csv = rows.map(function (r) {
       return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(",");
-    }).join("\n");
+    }).join("\r\n");
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
     a.download = LAST.reference + ".csv";
     a.click();
   }
 
-  /* ── arranque ──────────────────────────────────────────────── */
+  /* ── boot ────────────────────────────────────────────────────── */
   function init(mode) {
     MODE = mode;
     return root.SDGData.load().then(function (data) {
       DATA = data;
 
-      if (MODE === "full") airportOptions($("origin"), "— Elige el origen —");
-      airportOptions($("destination"), "— Elige el destino —");
+      if (MODE === "full") airportOptions($("origin"), "\u2014 select origin \u2014");
+      airportOptions($("destination"), "\u2014 select destination \u2014");
       cargoOptions($("cargoType"));
       currencyOptions($("currency"));
 
       if (MODE === "full") {
-        $("pieces").insertBefore(pieceRow(), $("pieces-foot"));
-        $("addPiece").onclick = function () {
-          $("pieces").insertBefore(pieceRow(), $("pieces-foot"));
-          refreshWeights();
-        };
-        refreshWeights();
+        $("lines").appendChild(consignmentLine());
+        $("addLine").onclick = function () { $("lines").appendChild(consignmentLine()); tally(); };
+        tally();
+        $("cwOverride").addEventListener("input", function () {
+          $("t-cw").textContent = (parseFloat(this.value) > 0)
+            ? parseFloat(this.value).toFixed(1) + " kg" : tally().chargeable.toFixed(1) + " kg";
+        });
       }
 
       $("handling").onchange = function () {
@@ -231,18 +296,17 @@
       $("csv").onclick = exportCSV;
 
       var active = data.airports.filter(function (a) { return a.active; }).length;
-      if ($("stat-airports")) $("stat-airports").textContent = active + " aeropuertos";
-      if ($("stat-source")) {
-        $("stat-source").textContent = data.source === "sheet" ? "hoja en vivo" : "datos del repo";
-        $("stat-source").className = "tb-pill " + (data.source === "sheet" ? "live" : "");
+      if ($("s-airports")) $("s-airports").textContent = active + " stations";
+      if ($("s-source")) {
+        var live = data.source === "sheet";
+        $("s-source").textContent = live ? "live sheet" : "repository";
+        $("s-source").className = "flag " + (live ? "live" : "");
       }
-      if ($("stat-updated") && data.generated_at) {
-        $("stat-updated").textContent = data.generated_at.slice(0, 10);
-      }
+      if ($("s-updated") && data.generated_at) $("s-updated").textContent = data.generated_at.slice(0, 10);
       return data;
     }).catch(function (err) {
       document.body.insertBefore(
-        el("div", { class: "err", style: "margin:20px" }, "No se han podido cargar las tarifas: " + err.message),
+        el("div", { class: "alert" }, "<strong>Tariffs unavailable</strong>" + esc(err.message)),
         document.body.firstChild
       );
       throw err;

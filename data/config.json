@@ -8,8 +8,16 @@
   },
   "base_currency": "EUR",
   "currencies": {
-    "EUR": { "symbol": "€", "label": "Euro", "rate_from_base": 1.0 },
-    "USD": { "symbol": "$", "label": "US Dollar", "rate_from_base": 1.08 }
+    "EUR": {
+      "symbol": "€",
+      "label": "Euro",
+      "rate_from_base": 1.0
+    },
+    "USD": {
+      "symbol": "$",
+      "label": "US Dollar",
+      "rate_from_base": 1.08
+    }
   },
   "volumetric_factor": 167,
   "chargeable_weight_rounding": 0.5,
@@ -18,11 +26,36 @@
     "tier_1_last_day": 20
   },
   "cargo_types": [
-    { "id": "GEN", "label": "General Cargo", "thc": "gen", "storage": "gen" },
-    { "id": "DGR", "label": "Dangerous Goods (DGR)", "thc": "dg", "storage": "dg" },
-    { "id": "PHA", "label": "Pharma", "thc": "pha", "storage": "cool" },
-    { "id": "PER", "label": "Perishable / Temperature Controlled", "thc": "pha", "storage": "cool" },
-    { "id": "VAL", "label": "Valuable / Vulnerable Goods", "thc": "gen", "storage": "gen" }
+    {
+      "id": "GEN",
+      "label": "General cargo",
+      "thc": "gen",
+      "storage": "gen"
+    },
+    {
+      "id": "DGR",
+      "label": "Dangerous goods",
+      "thc": "dg",
+      "storage": "dg"
+    },
+    {
+      "id": "PHA",
+      "label": "Pharmaceuticals",
+      "thc": "pha",
+      "storage": "cool"
+    },
+    {
+      "id": "PER",
+      "label": "Perishables / temperature controlled",
+      "thc": "pha",
+      "storage": "cool"
+    },
+    {
+      "id": "VAL",
+      "label": "Valuable cargo",
+      "thc": "gen",
+      "storage": "gen"
+    }
   ],
   "quote": {
     "reference_prefix": "SDG",

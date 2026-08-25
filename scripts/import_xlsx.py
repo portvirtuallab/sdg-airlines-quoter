@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-import_xlsx.py — Convierte el libro SDG_Arrival_Charges (.xlsx exportado de
-Google Sheets) en los CSV canónicos de data/.
+import_xlsx.py — Converts the SDG_Arrival_Charges workbook (.xlsx exported
+from Google Sheets) into the canonical CSVs under data/.
 
-Uso:
-    python scripts/import_xlsx.py ruta/al/SDG_Arrival_Charges.xlsx
+Run:
+    python scripts/import_xlsx.py path/to/SDG_Arrival_Charges.xlsx
 
-Solo se usa cuando alguien edita el Google Sheet y quiere volcarlo al repo.
-El día a día (añadir un aeropuerto) se hace editando data/*.csv directamente.
+Only needed for a one-off migration from the workbook. Day to day, adding a
+station means editing data/*.csv directly.
 """
 import csv
 import sys
@@ -36,7 +36,7 @@ CHARGE_COLS = [
     "imp_doc_min", "imp_doc_fee",
 ]
 
-# Índices de columna (0-based) en la hoja "Arrival Charges Table"
+# Column indices (0-based) in the "Arrival Charges Table" sheet
 CHARGE_MAP = {
     "sec_min": 1, "sec_rate": 2,
     "cus_min": 4, "cus_rate": 5,
@@ -69,7 +69,7 @@ def num(v, default=0.0):
 def main(path):
     wb = load_workbook(path, read_only=True, data_only=True)
 
-    # ── Airports ──────────────────────────────────────────────
+    # -- Airports -─────────────────────────────────────────────
     rows = list(wb["Airports"].iter_rows(values_only=True))
     airports = []
     for r in rows[5:]:
@@ -88,7 +88,7 @@ def main(path):
         w.writeheader()
         w.writerows(sorted(airports, key=lambda a: a["code"]))
 
-    # ── Arrival charges ───────────────────────────────────────
+    # -- Arrival charges -──────────────────────────────────────
     rows = list(wb["Arrival Charges Table"].iter_rows(values_only=True))
     charges = []
     for r in rows[5:]:
@@ -106,11 +106,11 @@ def main(path):
         w.writeheader()
         w.writerows(sorted(charges, key=lambda c: c["code"]))
 
-    print(f"OK  {len(airports)} aeropuertos → data/airports.csv")
-    print(f"OK  {len(charges)} tarifas de llegada → data/arrival_charges.csv")
+    print(f"OK  {len(airports)} stations → data/airports.csv")
+    print(f"OK  {len(charges)} arrival tariffs → data/arrival_charges.csv")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit("Uso: python scripts/import_xlsx.py <fichero.xlsx>")
+        sys.exit("Usage: python scripts/import_xlsx.py <workbook.xlsx>")
     main(sys.argv[1])

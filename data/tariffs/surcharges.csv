@@ -1,0 +1,7 @@
+code,label,basis,amount,applies,note
+ETS,Emissions trading scheme,per_km,0.009,always,derived from 223 historical quotations
+XR,X-ray screening,flat,13,always,
+AP,Airport surcharge,flat,20,always,
+CT,Control fee,flat,45,always,
+CC,Customs cost,flat,39,customs_required,
+PSS,Peak season surcharge,per_kg,0,disabled,formula unresolved in the source workbook - see README

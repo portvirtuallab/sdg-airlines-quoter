@@ -1,0 +1,27 @@
+code,icao,name,city,country,lat,lon,utc_offset,home_service,schengen,afcfta,authority,manager,email,active
+ALG,DAAG,Algier Houari Boumediene Airport,ALGIER,Algeria,36.6910019,3.21541,3.0,WESTMED,no,no,EGSA Alger,Mr. Rachid BENANI,sdgairlines@playpcs.com,yes
+AMM,OJAI,Queen Alia International Airport,AMMAN,Jordan,31.7226009,35.9931984,3.0,EASTMED,no,no,Jordan Airports Company (JAC),Mr. Georf Al-Dura,sdgairlines@playpcs.com,yes
+AMS,EHAM,Amsterdam Airport Schiphol,AMSTERDAM,Netherlands,52.3086,4.7639,1.0,AZAHAR,yes,no,Royal Schiphol Group,Mr. Elbert Walburg,sdgairlines@playpcs.com,yes
+ATH,LGAV,Eleftherios Venizelos International Airport,ATHENS,Greece,37.9364014,23.9445,3.0,EASTMED,yes,no,Athens International Airport,Ms. Eftichia Papagiano,sdgairlines@playpcs.com,yes
+BCN,LEBL,Barcelona-El Prat Josep Tarradellas Airport,BARCELONA,Spain,41.2971001,2.07846,2.0,HUB,yes,no,AENA Aeropuertos,Ms. Montserrat Torrent,sdgairlines@playpcs.com,yes
+BEY,LLBG,Beirut-Rafic Hariri International Airport,BEYRUT,Lebanon,32.0113983,34.8866997,3.0,RED SEA,no,no,Beirut Rafic Hariri International Airport,Ms. Saloua Mansour,sdgairlines@playpcs.com,yes
+BKK,VTBS,Suvarnabhumi Airport,BANGKOK,Thailand,40.76,73.984,7.0,ASIA,no,no,Airports of Thailand PCL (AOT),Ms. Wimol Siripaiboon,sdgairlines@playpcs.com,yes
+BOM,VABB,Chhatrapati Shivaji Maharaj International Airport,MUMBAI,India,19.0886,72.868,5.5,ASIA,no,no,Mumbai International Airport Limited (Adani Enterprises-ACSA-AAI consortium),Ms. Kalpana Chawla,sdgairlines@playpcs.com,yes
+CAI,HECA,Cairo International Airport,CAIRO,Egypt,30.1219006,31.4055996,2.0,EASTMED,no,yes,Cairo Airport Company,Ms. Sandy Saleh,sdgairlines@playpcs.com,yes
+CMN,GMMN,Casablanca Mohammed V Airport,CASABLANCA,Morocco,33.3675003,-7.5899701,1.0,WEST AFRICA,no,no,Office National des Aéroports,Mr. Said Batma,sdgairlines@playpcs.com,yes
+DXB,OMDB,Dubai International Airport,DUBAI,United Arab Emirates,25.2527778,55.364,4.0,ASIA,no,no,Dubai Airports Company,Ms. Samia Maimani,sdgairlines@playpcs.com,yes
+FCO,LIRF,Leonardo Da Vinci–Fiumicino Airport,ROMA,Italy,41.8044444,12.2508333,2.0,EASTMED,yes,no,Aeroporti di Roma,Mr. Luciano Estevanotti,sdgairlines@playpcs.com,yes
+HKG,VHHH,Hong Kong International Airport,HONG KONG,China,22.3088,113.9144,8.0,ASIA,no,no,Airport Authority Hong Kong,Ms. Wang Yaping,sdgairlines@playpcs.com,yes
+IST,LTFM,Istanbul Airport,ISTANBUL,Türkiye,41.2768,28.73,3.0,WESTMED,no,no,Istambul Airport,,sdgairlines@playpcs.com,yes
+JED,OEJN,King Abdulaziz International Airport,JEDDAH,Saudi Arabia,21.6794,39.1567,3.0,ASIA,no,no,General Authority of Civil Aviation of Saudi Arabia (GACA),Mr. Sami Al-Harbi,sdgairlines@playpcs.com,yes
+LIS,LPPT,Lisbon Portela Airport,LISBON,Portugal,38.7812996,-9.1359196,0.0,WESTMED,yes,no,Lisbon Airport,Mr. Caetano Felloso,sdgairlines@playpcs.com,yes
+MAD,LEMD,Adolfo Suárez Madrid–Barajas Airport,MADRID,Spain,40.471926,-3.56264,2.0,WEST AFRICA,yes,no,AENA Aeropuertos,Ms. Almudena García,sdgairlines@playpcs.com,yes
+MLA,LMML,Malta International Airport,LUQA,Malta,35.857498,14.4775,2.0,EASTMED,yes,no,Malta International Airport,Ms. Emma Muscat,sdgairlines@playpcs.com,yes
+MRS,LFML,Marseille Provence Airport,MARSEILLE,France,43.4392719,5.2214241,2.0,WESTMED,yes,no,Aéroport Marseille Provence,Ms. Michelle Senliss,sdgairlines@playpcs.com,yes
+NKC,GQNN,Nouakchott–Oumtounsy International Airport,NOUAKCHOTT,Mauritania,18.0981998,15.9484997,0.0,WEST AFRICA,no,yes,Nouakchott–Oumtounsy International Airport,Mr. Saleh LO Jr.,sdgairlines@playpcs.com,yes
+PUS,RKPK,Gimhae International Airport,BUSAN,South Korea,35.1794444,158.9383,9.0,ASIA,no,no,Korea Airports Corporation,Ms. Yi So-yeon,sdgairlines@playpcs.com,yes
+TIA,LATI,Tirana International Airport Nene Tereza,TIRANA,Albania,41.4147,19.7206,1,EASTMED,no,no,Tirana International Airport,Sr. Constantin von Alvenslebe,sdgairlines@playpcs.com,yes
+TIP,HLLT,Tripoli Mitiga International,TRIPOLI,Libya,,,2,,no,yes,,,,no
+TLV,LLBG,Ben Gurion Airport,TEL AVIV,Israel,32.0113983,34.8866997,3.0,RED SEA,no,no,Israel Airports Authority,Mr. Shlomo Sharon,sdgairlines@playpcs.com,yes
+TUN,DTTA,Tunis Carthage Airport,TUNIS,Tunisia,36.8510017,10.2271996,3.0,WESTMED,no,yes,Office de l'Aviation Civile et des Aéroports (OACA),Mr. Fatma Habbouba,sdgairlines@playpcs.com,yes
+VLC,LEVC,Valencia Airport,VALENCIA,Spain,39.483889,-0.481667,2.0,AZAHAR,yes,no,AENA Aeropuertos,Ms. Aura Rosales Guerra,sdgairlines@playpcs.com,yes

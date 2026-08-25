@@ -1,10 +1,10 @@
 /* ══════════════════════════════════════════════════════════════
-   SDG Airlines — carga de datos
-   Dos modos, misma forma de salida:
-     local  → docs/data/tariffs.json (generado por scripts/build.py)
-     sheet  → lee el Google Sheet en vivo vía gviz CSV
-   El modo se fija en data/config.json → data_source.mode, y se puede
-   forzar en la URL con ?source=sheet o ?source=local.
+   SDG AIRLINES — data loading
+   Two modes, one output shape:
+     local  → docs/data/tariffs.json, built by scripts/build.py
+     sheet  → reads the Google Sheet live over gviz CSV
+   The mode is set in data/config.json → data_source.mode, and can be
+   forced from the URL with ?source=sheet or ?source=local.
    ══════════════════════════════════════════════════════════════ */
 (function (root) {
   "use strict";
@@ -97,7 +97,7 @@
     var ds = config.data_source, id = ds.sheet_id, tabs = ds.sheets;
     return Promise.all([tabs.airports, tabs.arrival_charges, tabs.routes].map(function (tab) {
       return fetch(sheetURL(id, tab)).then(function (r) {
-        if (!r.ok) throw new Error("No se pudo leer la pestaña '" + tab + "' (HTTP " + r.status + ")");
+        if (!r.ok) throw new Error("Could not read the '" + tab + "' tab (HTTP " + r.status + ")");
         return r.text();
       }).then(parseCSV);
     })).then(function (parts) {
@@ -109,7 +109,7 @@
     var forced = new URLSearchParams(location.search).get("source");
     return fetch(JSON_URL, { cache: "no-cache" })
       .then(function (r) {
-        if (!r.ok) throw new Error("Falta data/tariffs.json — ejecuta `python scripts/build.py`");
+        if (!r.ok) throw new Error("data/tariffs.json is missing — run `python scripts/build.py`");
         return r.json();
       })
       .then(function (bundle) {
@@ -118,8 +118,8 @@
         return loadFromSheet(bundle.config)
           .then(function (live) { live.source = "sheet"; live.generated_at = new Date().toISOString(); return live; })
           .catch(function (err) {
-            console.warn("Modo hoja no disponible, se usa la copia local:", err.message);
-            bundle.source = "local (la hoja no respondió)";
+            console.warn("Live sheet unavailable, falling back to the bundled copy:", err.message);
+            bundle.source = "local (sheet did not respond)";
             return bundle;
           });
       });

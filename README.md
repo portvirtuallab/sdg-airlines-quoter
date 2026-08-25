@@ -1,152 +1,139 @@
-# SDG Airlines — Air Cargo Quotation Suite
+# SDG Airlines — Air Cargo Rating Desk
 
-Cotizador de carga aérea de la aerolínea ficticia **SDG Airlines**, usado en los
-cursos del **Port Virtual Lab** de Escola Europea – Intermodal Transport.
+Air cargo quotation tool for the fictional carrier **SDG Airlines**, used in the
+**Port Virtual Lab** courses at Escola Europea – Intermodal Transport.
 
-Dos herramientas sobre un mismo motor:
-
-| Página | Qué hace |
+| Page | What it does |
 |---|---|
-| `docs/quote.html` | Cotización completa origen → destino: flete con tramos de peso, recargos, THC en salida y cargos de llegada |
-| `docs/arrival.html` | Sólo cargos de llegada en el aeropuerto de destino |
+| `docs/quote.html` | Full origin-to-destination quotation: weight charge with rate bands and weight breaks, surcharges, origin handling and every destination charge |
+| `docs/arrival.html` | Destination charges only |
 
-**La idea central:** las tarifas viven en tres CSV. Añadir un aeropuerto es
-añadir una fila. Nadie toca JavaScript.
+**The core idea:** tariffs live in three CSV files. Adding an airport means
+adding a row. Nobody touches JavaScript.
+
+The output is styled as a real air waybill rate line, so students read the same
+document they will meet in the industry.
 
 ---
 
-## Añadir un aeropuerto nuevo
+## Adding a station
 
-Tres filas y un comando. Ejemplo con Dakar (DKR):
+Three rows. Example, Dakar (DKR):
 
-**1 — `data/airports.csv`**
+**1 — `data/network/airports.csv`**
 
 ```csv
-DKR,DAKAR,Senegal,West Africa,yes
+DKR,GOBD,Blaise Diagne International,DAKAR,Senegal,14.67,-17.07,0,WEST AFRICA,no,yes,AIBD SA,,,yes
 ```
 
-**2 — `data/arrival_charges.csv`** — una fila con las tarifas de handling en destino:
+**2 — `data/tariffs/ground_charges.csv`** — ground handling tariff at that station:
 
 ```csv
 DKR,EUR,29.00,0.21,37.10,0.15,46.00,41.00,0.14,0,37.10,1.15,0.040,1.60,0.043,1.60,0.043,41.0,12.0,23.0,5,44,21,31,4,44,14,23.0,6,0,38.00
 ```
 
-**3 — `data/routes.csv`** — qué cuesta volar hasta allí:
+**3 — `data/tariffs/freight_rates.csv`** — what it costs to fly there:
 
 ```csv
-*,DKR,95,6.20,5.40,5.10,4.80,0.35,0.10,3,tarifa por defecto a este destino
+BCN,DKR,95,6.20,5.40,5.10,4.80
 ```
 
-**4 — compilar y comprobar**
+Commit those three rows. GitHub Actions runs the build, validates the figures
+and publishes. **You do not need Python on your own machine** — the workflow
+runs it for you.
 
-```bash
-python scripts/build.py
-```
-
-```
-✔ 27 aeropuertos activos · 27 tablas de llegada · 28 tarifas de flete
-✔ escrito docs/data/tariffs.json (31.4 KB)
-```
-
-Commit, push, y GitHub Pages lo publica. Dakar aparece solo en los dos
-desplegables, agrupado por región, con su tabla de cargos completa.
-
-Si te falta un dato, el build te lo dice antes de publicar nada:
+If something is missing, the build stops before anything goes live:
 
 ```
-  ERROR   DKR está activo en airports.csv pero no tiene fila en arrival_charges.csv
-✘ 1 error(es). No se genera nada.
+  ERROR    DKR is active in airports.csv but has no row in arrival_charges.csv
+✘ 1 error(s). Nothing was written.
 ```
 
-**Para dar de baja un aeropuerto** sin perder su histórico: pon `active` a `no`.
-Desaparece de la interfaz, la fila se queda en el repo.
+**To retire a station** without losing its history, set `active` to `no`. It
+disappears from the interface and the row stays in the repository.
 
 ---
 
-## Tarifas de flete: comodines y acuerdos
+## Freight rates: wildcards and contracts
 
-`routes.csv` acepta `*` como origen. Eso significa «desde cualquier aeropuerto
-de la red». Así cubres los 26×26 pares con 26 filas.
+`freight_rates.csv` holds one row per ordered pair, 650 in all, straight from
+the carrier tariff. The engine also accepts `*` as the origin, meaning "from
+anywhere on the network", so a new station needs one wildcard row rather than
+fifty:
 
 ```csv
-origin,destination,min_charge,rate_under_100,...
-*,CAI,60,4.05,3.45,3.00,2.78,...      ← todos → El Cairo
-BCN,CAI,55,3.95,3.30,2.90,2.60,...    ← acuerdo directo BCN–El Cairo
+origin,destination,minimum,rate_under_100,rate_100_299,rate_300_499,rate_500_plus
+*,DKR,95,6.20,5.40,5.10,4.80      ← anywhere to Dakar
+BCN,DKR,88,5.90,5.10,4.80,4.55    ← negotiated BCN-Dakar rate
 ```
 
-El motor busca primero el par exacto y sólo si no existe usa el comodín. Para
-negociar una ruta concreta en clase, añades una fila y ya.
+The exact pair always wins over the wildcard. To negotiate one lane in class,
+add one row.
 
 ---
 
-## Puesta en marcha
+## Running it
 
 ```bash
-git clone https://github.com/<tu-usuario>/sdg-airlines-quoter.git
+git clone https://github.com/<user>/sdg-airlines-quoter.git
 cd sdg-airlines-quoter
-pip install -r scripts/requirements.txt      # sólo para importar desde Excel
 python scripts/build.py
-python -m http.server 8080 --directory docs  # abre http://localhost:8080
+python -m http.server 8080 --directory docs   # open http://localhost:8080
 ```
 
-**Publicar:** Settings → Pages → Source: *GitHub Actions*. El workflow `ci.yml`
-valida, prueba y despliega en cada push a `main`.
+**Publishing:** Settings → Pages → Source: *GitHub Actions*. The `ci.yml`
+workflow validates, tests and deploys on every push to `main`.
 
 ---
 
-## De dónde salen los datos
+## Where the data comes from
 
-Tres modos, se elige en `data/config.json` → `data_source.mode`:
+Set in `data/config.json` → `data_source.mode`:
 
-**`local`** (por defecto) — la web lee `docs/data/tariffs.json`, generado desde
-los CSV del repo. Rápido, funciona sin conexión, todo cambio queda en el
-historial de git.
+**`local`** (default) — the site reads `docs/data/tariffs.json`, built from the
+CSVs. Fast, works offline, every change is in the git history.
 
-**`sheet`** — la web lee el Google Sheet en vivo con `gviz`. Editas la hoja,
-recargas el navegador y ya está: cero despliegues. Requiere que el documento
-esté compartido como *cualquiera con el enlace puede ver*, y las pestañas deben
-llamarse `airports`, `arrival_charges` y `routes` con las mismas cabeceras que
-los CSV. Si la hoja no responde, la web vuelve sola a la copia local.
+**`sheet`** — the site reads the Google Sheet live over `gviz`. Edit the sheet,
+reload the page, done. The document must be shared as *anyone with the link can
+view*, and the tabs must be named `airports`, `arrival_charges` and `routes`
+with the same headers as the CSVs. If the sheet does not answer, the site falls
+back to the bundled copy on its own.
 
-Se puede forzar sin tocar la configuración: `quote.html?source=sheet`.
+Force it without touching the config: `quote.html?source=sheet`.
 
-**Sincronización periódica** — el workflow `sync-sheet.yml` baja la hoja y abre
-una pull request con el diff. Lo mejor de los dos mundos: la gente edita en
-Sheets, el repo conserva el histórico y tú revisas antes de publicar.
-
-```bash
-python scripts/sync_sheet.py    # hoja → data/*.csv
-python scripts/build.py         # data/*.csv → docs/data/tariffs.json
-```
+**Scheduled sync** — the `sync-sheet.yml` workflow pulls the sheet and opens a
+pull request with the diff. People edit in Sheets, the repository keeps the
+history, and someone reviews before it goes live.
 
 ---
 
-## Cómo se calcula
+## How the numbers are worked out
 
-**Peso facturable** — se compara el peso real con el volumétrico
-(L×A×H ÷ 167, factor IATA configurable) y manda el mayor, redondeado al
-alza al medio kilo.
+**Chargeable weight** — actual weight against volumetric (L × W × H ÷ 167, the
+IATA factor, configurable); the greater one wins, rounded up to the half kilo.
 
-**Tramos de flete** — `<100`, `100–299`, `300–499`, `+500` kg, siempre con
-mínimo por envío.
+**Rate bands** — under 100, 100–299, 300–499 and 500 kg and over, always
+against a minimum charge per shipment.
 
-**Salto de tramo** — si facturar al siguiente escalón sale más barato, el motor
-lo detecta y factura a ese peso. Es práctica habitual en carga aérea y en clase
-se ve muy bien: 95 kg a Lisboa se facturan como 100 kg y el envío pasa de
-897,75 a 300 €.
+**Weight break** — when rating at the next breakpoint costs less, the engine
+spots it and quotes the lower figure. Standard air cargo practice, and it shows
+well in class: 95 kg to Lisbon is rated as 100 kg and the shipment drops from
+897.75 to 300 EUR.
 
-**Recargos** — combustible (FSC) y seguridad (SSC) por kilo, definidos por ruta.
+**Rate class** — the quote shows the AWB rate class: **M** when the minimum
+charge applies, **N** for a normal rate below 100 kg, **Q** for a quantity rate.
 
-**Almacenaje** — días libres del aeropuerto, luego tramo 1–20 días a una tarifa
-y a partir del día 21 a otra más alta, por cada 100 kg o fracción, más la
-cuota por MAWB. Esto sale directo de la hoja original, que ya traía las tres
-familias (general, cámara de frío y mercancías peligrosas) para los 26
-aeropuertos.
+**Surcharges** — fuel (MY) and security (SC) per kilo, set per lane.
 
-**Moneda** — todo se calcula en la moneda base y se convierte al final con el
-tipo de `config.json`.
+**Storage** — free days first, then days 1–20 at one rate and day 21 onward at
+a higher one, per 100 kg or part thereof, plus the fee per MAWB. All three
+families come straight from the original workbook: general cargo, cool chamber
+and dangerous goods, for all 26 stations.
 
-Los números están comprobados contra el Excel original:
+**Currency** — everything is computed in the base currency and converted at the
+end using the rate in `config.json`.
+
+The figures are checked against the original workbook:
 
 ```bash
 node scripts/test_engine.mjs
@@ -154,39 +141,70 @@ node scripts/test_engine.mjs
 
 ---
 
-## Estructura
+## Charge codes
+
+Quotations use IATA-style codes so the breakdown reads like a real one.
+
+| Code | Charge |
+|---|---|
+| `WT` | Weight charge |
+| `MY` | Fuel surcharge |
+| `SC` | Security surcharge |
+| `AW` | Air waybill fee |
+| `TH` | Terminal handling at origin |
+| `SD` | Security at arrival |
+| `CH` | Customs clearance formalities |
+| `DB` | Import documentation handling |
+| `LB` / `LU` | Truck loading, bulk or ULD |
+| `TD` | Terminal handling at destination |
+| `ST` | Storage |
+
+---
+
+## Layout
 
 ```
-data/                     ← la fuente de verdad, lo único que se edita a diario
-  airports.csv              red de aeropuertos
-  arrival_charges.csv       tarifas de handling en destino
-  routes.csv                tarifas de flete por par O/D (admite comodín *)
-  config.json               monedas, factor volumétrico, tipos de mercancía
+data/                     ← the source of truth, the only files edited day to day
+  config.json               currencies, volumetric factor, commodity types
+  network/
+    airports.csv            the station network, with UTC offset and customs status
+    services.csv            the six services, their hub and emblem
+    legs.csv                the 40 legs that make up the six rotation loops
+    rotations.csv           which aircraft flies which loop, and from when
+    aircraft_types.csv      the fleet types
+    distances.csv           great-circle distances between stations
+    customs_regime.csv      WCO or Schengen by O/D pair
+    customs_documents.csv   the paperwork link by O/D pair
+  tariffs/
+    ground_charges.csv      handling tariffs by station
+    freight_rates.csv       freight rates by O/D pair
+    surcharges.csv          ETS, screening, control, peak season
 scripts/
-  build.py                  CSV → docs/data/tariffs.json, con validaciones
+  build.py                  CSV → docs/data/tariffs.json, with validation
   sync_sheet.py             Google Sheet → CSV
-  import_xlsx.py            .xlsx exportado → CSV (migración puntual)
-  build_gas.py              docs/ → gas/ autocontenido para Apps Script
-  test_engine.mjs           comprobaciones contra los números del Excel
-docs/                     ← lo que publica GitHub Pages
-  index.html                vestíbulo
-  quote.html                cotización completa
-  arrival.html              cargos de llegada
-  assets/js/engine.js       motor de cálculo, sin DOM ni dependencias
-  assets/js/data.js         carga local o desde la hoja
-  assets/js/ui.js           formularios y desglose
-  assets/css/sdg.css        identidad visual SDG
-  data/tariffs.json         generado — no editar a mano
-gas/                      ← despliegue opcional en Apps Script
+  import_xlsx.py            exported .xlsx → CSV, one-off migration
+  build_gas.py              docs/ → self-contained gas/ for Apps Script
+  test_engine.mjs           checks against the original workbook figures
+  test_network.mjs          checks the rotations close and every pair routes
+docs/                     ← what GitHub Pages publishes
+  index.html                rating desk
+  quote.html                full quotation
+  arrival.html              arrival charges
+  assets/js/engine.js       the engine: no DOM, no dependencies
+  assets/js/data.js         loads locally or from the sheet
+  assets/js/ui.js           forms and the quotation document
+  assets/css/sdg.css        the visual system
+  data/tariffs.json         generated — do not edit by hand
+gas/                      ← optional Apps Script deployment
 ```
 
 ---
 
-## Seguir usando Google Apps Script
+## Staying on Google Apps Script
 
-Si necesitas el acceso restringido a la organización, el proyecto sigue
-funcionando en Apps Script. Apps Script no sirve ficheros estáticos, así que
-hay un empaquetador que incrusta CSS, JS y tarifas en cada página:
+If access has to be restricted to the organisation, the project still runs on
+Apps Script. Since Apps Script cannot serve static files, a bundler inlines the
+CSS, JS and tariffs into each page:
 
 ```bash
 python scripts/build.py
@@ -194,17 +212,17 @@ python scripts/build_gas.py
 cd gas && clasp push && clasp deploy
 ```
 
-`gas/Code.gs` mantiene los enlaces antiguos: `?page=quoter` lleva a la
-cotización completa y `?page=calculator` a los cargos de llegada.
+`gas/Code.gs` keeps the old links alive: `?page=quoter` reaches the full
+quotation and `?page=calculator` the arrival charges.
 
 ---
 
-## Qué no incluye la cotización
+## Not included in a quotation
 
-Transporte terrestre, entrega a domicilio, derechos de importación, IVA e
-impuestos aduaneros. El transporte terrestre se cotiza aparte.
+Inland trucking, door delivery, import duties, VAT and customs taxes. Inland
+transport is quoted separately.
 
 ---
 
-Herramienta educativa. Todas las tarifas son orientativas y la aerolínea es
-ficticia. Sin uso comercial.
+Training tool. All tariffs are indicative and the carrier is fictional. Not for
+commercial use.

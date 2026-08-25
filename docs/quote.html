@@ -1,151 +1,164 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SDG Airlines — Cotizador de carga aérea</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>SDG Airlines — Rate quotation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,300..900&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/sdg.css">
 </head>
 <body>
 
-<header class="topbar">
-  <a class="topbar-brand" href="index.html">SDG Airlines</a>
-  <div class="topbar-sep"></div>
-  <div class="topbar-sub">Cotizador de carga aérea</div>
-  <div class="topbar-right">
-    <div class="tb-pill" id="stat-source">datos del repo</div>
-    <div class="tb-pill sim">⬡ Simulación</div>
+<header class="carrier">
+  <div class="carrier-in">
+    <a class="mark" href="index.html"><span class="prefix">083</span>SDG Airlines</a>
+    <span class="carrier-role">Air cargo</span>
+    <span class="carrier-end">
+      <span class="flag" id="s-source">repository</span>
+      <span class="flag sim">Simulation</span>
+    </span>
   </div>
 </header>
 
-<div class="hero">
-  <div class="hero-inner">
-    <div class="hero-label">Origen a destino, todo en una pantalla</div>
-    <h1 class="hero-h1">Cotización<br><span class="stripe">completa</span></h1>
-    <div class="hero-meta">
-      <div class="hm-cell"><span class="hm-l">Red</span><span class="hm-v" id="stat-airports">—</span></div>
-      <div class="hm-cell"><span class="hm-l">Tarifas de</span><span class="hm-v gold" id="stat-updated">—</span></div>
-      <div class="hm-cell"><span class="hm-l">Incluye</span><span class="hm-v">Flete · THC · Llegada</span></div>
-    </div>
+<div class="masthead">
+  <div>
+    <div class="eyebrow">Origin to destination · all charges</div>
+    <h1 class="headline">Rate<span class="thin">quotation</span></h1>
+  </div>
+  <div class="strip">
+    <div class="strip-cell"><span class="strip-k">Network</span><span class="strip-v" id="s-airports">—</span></div>
+    <div class="strip-cell"><span class="strip-k">Tariffs of</span><span class="strip-v" id="s-updated">—</span></div>
+    <div class="strip-cell"><span class="strip-k">Basis</span><span class="strip-v ok">IATA</span></div>
   </div>
 </div>
 
-<main class="wrap">
+<main class="shell">
 
-  <section class="form-section">
-    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Ruta y envío</span></div>
-    <div class="grid">
+  <section class="box">
+    <div class="box-head"><span class="box-n">1</span><span class="box-t">Routing and commodity</span></div>
+    <div class="fields">
       <div class="field">
-        <label for="origin">Aeropuerto de origen <span class="req">*</span></label>
+        <label for="origin">Airport of departure <span class="req">*</span></label>
         <select id="origin"></select>
       </div>
       <div class="field">
-        <label for="destination">Aeropuerto de destino <span class="req">*</span></label>
+        <label for="destination">Airport of destination <span class="req">*</span></label>
         <select id="destination"></select>
-        <div class="hint">Los cargos de llegada se calculan con la tarifa de este aeropuerto</div>
+        <div class="note">Arrival charges are rated on this airport's tariff</div>
       </div>
       <div class="field">
-        <label for="cargoType">Naturaleza de la mercancía <span class="req">*</span></label>
+        <label for="cargoType">Nature and quantity of goods <span class="req">*</span></label>
         <select id="cargoType"></select>
       </div>
       <div class="field">
-        <label for="currency">Moneda</label>
+        <label for="currency">Currency</label>
         <select id="currency"></select>
       </div>
       <div class="field">
-        <label for="mawbs">Número de MAWB</label>
+        <label for="mawbs">Master air waybills</label>
         <input type="number" id="mawbs" value="1" min="1" step="1">
       </div>
       <div class="field">
-        <label for="cwOverride">Forzar peso facturable (kg)</label>
-        <input type="number" id="cwOverride" min="0" step="0.5" placeholder="vacío = se calcula solo">
-        <div class="hint">Úsalo sólo si el handling te da otro peso</div>
+        <label for="cwOverride">Override chargeable weight (kg)</label>
+        <input type="number" id="cwOverride" min="0" step="0.5" placeholder="blank = calculated">
+        <div class="note">Only if the handler rates it differently</div>
       </div>
     </div>
   </section>
 
-  <section class="form-section">
-    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Bultos y dimensiones</span></div>
-    <div class="pieces" id="pieces">
-      <div class="pieces-foot" id="pieces-foot">
-        <button class="btn-mini" type="button" id="addPiece" style="width:auto;padding:0 14px">+ Añadir línea</button>
-        <div class="cp"><span class="cp-l">Peso real</span><span class="cp-v" id="w-gross">—</span></div>
-        <div class="cp"><span class="cp-l">Peso volumétrico</span><span class="cp-v" id="w-vol">—</span></div>
-        <div class="cp"><span class="cp-l">Peso facturable</span><span class="cp-v hi" id="w-cw">—</span></div>
-        <div class="cp"><span class="cp-l">Manda</span><span class="cp-v" id="w-basis">—</span></div>
-      </div>
+  <section class="box">
+    <div class="box-head">
+      <span class="box-n">2</span><span class="box-t">Consignment</span>
+      <span class="box-note">Volumetric factor 167 &middot; dimensions in cm</span>
+    </div>
+    <div class="lines-head">
+      <span>Pieces</span><span>Weight each (kg)</span><span>Length</span><span>Width</span><span>Height</span><span></span>
+    </div>
+    <div id="lines"></div>
+    <div class="tally">
+      <div class="tally-pad"><button class="add" type="button" id="addLine">+ Add line</button></div>
+      <div class="tally-cell"><span class="tally-k">Pieces</span><span class="tally-v" id="t-pieces">—</span></div>
+      <div class="tally-cell"><span class="tally-k">Gross weight</span><span class="tally-v" id="t-gross">—</span></div>
+      <div class="tally-cell"><span class="tally-k">Volumetric</span><span class="tally-v" id="t-vol">—</span></div>
+      <div class="tally-cell"><span class="tally-k">Chargeable</span><span class="tally-v key" id="t-cw">—</span></div>
+      <div class="tally-cell"><span class="tally-k">Rated on</span><span class="tally-v" id="t-basis">—</span></div>
     </div>
   </section>
 
-  <section class="form-section">
-    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Servicios en destino</span></div>
-    <div class="grid">
+  <section class="box">
+    <div class="box-head"><span class="box-n">3</span><span class="box-t">Handling at destination</span></div>
+    <div class="fields">
       <div class="field">
-        <label for="handling">Tipo de manipulación <span class="req">*</span></label>
+        <label for="handling">Handling <span class="req">*</span></label>
         <select id="handling">
-          <option value="Bulk">Granel — carga suelta</option>
-          <option value="ULD">ULD — unidad de carga</option>
+          <option value="Bulk">Bulk — loose cargo</option>
+          <option value="ULD">ULD — unit load device</option>
         </select>
       </div>
       <div class="field" id="uldField">
-        <label for="ulds">Número de ULD</label>
+        <label for="ulds">Number of ULDs</label>
         <input type="number" id="ulds" value="1" min="1" step="1">
       </div>
       <div class="field">
-        <label for="customs">Despacho de aduana</label>
+        <label for="customs">Customs clearance</label>
         <select id="customs">
-          <option value="yes">Sí — aplica aduana y documentos</option>
-          <option value="no">No hace falta</option>
+          <option value="yes">Required — clearance and documentation apply</option>
+          <option value="no">Not required</option>
         </select>
       </div>
       <div class="field">
-        <label for="storageDays">Días en almacén en destino</label>
+        <label for="storageDays">Days in the destination warehouse</label>
         <input type="number" id="storageDays" value="0" min="0" step="1">
-        <div class="hint">Los días libres del aeropuerto se descuentan solos</div>
+        <div class="note">Free days are deducted automatically</div>
       </div>
     </div>
   </section>
 
-  <button class="btn-calc" id="calc" type="button"><span class="ico">✈</span> Calcular cotización</button>
+  <button class="execute" id="calc" type="button">Rate this shipment</button>
 
-  <section class="res" id="res">
-    <div class="res-head">
-      <div>
-        <div class="res-route" id="res-route"></div>
-        <div class="res-sub" id="res-sub"></div>
-        <div class="res-chips" id="res-chips"></div>
+  <section class="doc" id="doc">
+    <div id="alert"></div>
+    <div class="doc-sheet">
+      <div class="doc-top">
+        <div>
+          <div class="doc-carrier">SDG Airlines</div>
+          <div class="doc-kind">Air cargo division &middot; rate quotation</div>
+          <div class="doc-lane" id="doc-lane"></div>
+          <div class="doc-cities" id="doc-cities"></div>
+        </div>
+        <div>
+          <dl class="doc-ref" id="doc-ref"></dl>
+          <div class="tools">
+            <button class="tool" id="print" type="button">Print</button>
+            <button class="tool" id="csv" type="button">Export CSV</button>
+          </div>
+        </div>
       </div>
-      <div class="res-actions">
-        <button class="btn-ghost" id="print" type="button">Imprimir</button>
-        <button class="btn-ghost" id="csv" type="button">Descargar CSV</button>
+      <div class="rateline" id="rateline"></div>
+      <table class="ledger"><tbody id="ledger"></tbody></table>
+      <div class="grand">
+        <div>
+          <div class="grand-k">Total charges</div>
+          <div class="grand-sub">Prepaid at origin plus charges due at destination</div>
+        </div>
+        <div class="grand-v" id="grand"></div>
       </div>
-    </div>
-    <div id="res-error"></div>
-    <div class="bk">
-      <table class="bk-t">
-        <thead><tr><th>Concepto</th><th>Importe</th></tr></thead>
-        <tbody id="bk-body"></tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td><span class="total-l">Total de la cotización</span></td>
-            <td style="text-align:right"><span class="total-a" id="res-total"></span></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="notice">
-      <div class="notice-t">Qué no incluye</div>
-      <div class="notice-x">Transporte terrestre, entrega a domicilio, derechos de importación, IVA e impuestos aduaneros quedan fuera. El transporte terrestre se cotiza aparte con nuestra empresa asociada.</div>
+      <div class="terms">
+        <div class="terms-k">Conditions</div>
+        <div class="terms-x">Rates are quoted per the tariff in force on the date of issue and are subject to space and capacity being available at the time of booking. Excluded from this quotation: inland trucking, door delivery, import duties, VAT and any customs taxes. Inland transport is quoted separately through our partner road haulier. Dangerous goods require an accepted shipper's declaration before acceptance.</div>
+        <div class="sign">Accepted for the shipper</div>
+      </div>
     </div>
   </section>
 
 </main>
 
-<footer>
-  <div class="f-brand">SDG Airlines · Air Cargo Division · Escola Europea · Port Virtual Lab</div>
-  <div class="f-note">Simulación educativa · Sin uso comercial</div>
+<footer class="foot">
+  <div class="foot-in">
+    <span>SDG Airlines &middot; Air Cargo Division</span>
+    <span>Escola Europea &mdash; Intermodal Transport &middot; Port Virtual Lab</span>
+    <span>Training simulation &middot; not for commercial use</span>
+  </div>
 </footer>
 
 <script src="assets/js/engine.js"></script>
