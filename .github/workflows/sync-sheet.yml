@@ -1,0 +1,33 @@
+name: Pull tariffs from the Google Sheet
+
+# Run this by hand after someone edits the sheet. It opens a pull request with
+# the changes so they can be reviewed before going live.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'   # Mondays at 05:00 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+
+      - run: python scripts/sync_sheet.py
+      - run: python scripts/build.py
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sync/google-sheet
+          title: 'Tariffs updated from the Google Sheet'
+          commit-message: 'Sync tariffs from the Google Sheet'
+          body: |
+            Changes pulled automatically from the spreadsheet.
+            Review the `data/*.csv` diff before merging.
+          delete-branch: true

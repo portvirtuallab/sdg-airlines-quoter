@@ -1,8 +1,9 @@
-name: Validar y publicar
+name: Validate and publish
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -24,18 +25,22 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
 
-      - name: Validar y compilar tarifas
+      # Rebuilds tariffs.json from data/*.csv, so editing a CSV in the
+      # browser is enough - no Python needed on anyone's machine.
+      - name: Validate and build tariffs
         run: python scripts/build.py
 
-      - name: Probar el motor de cálculo
+      - name: Test the quotation engine
         run: node scripts/test_engine.mjs
 
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
           path: docs
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
