@@ -59,7 +59,9 @@
   ],
   "quote": {
     "reference_prefix": "SDG",
-    "validity_days": 15
+    "validity_days": 15,
+    "endpoint": "",
+    "endpoint_note": "Apps Script web app /exec URL. Leave blank to hide the send-by-email panel."
   },
   "data_source": {
     "mode": "local",

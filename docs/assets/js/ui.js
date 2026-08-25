@@ -6,7 +6,7 @@
 (function (root) {
   "use strict";
 
-  var DATA = null, MODE = "full", LAST = null;
+  var DATA = null, NET = null, MODE = "full", LAST = null;
   var $ = function (id) { return document.getElementById(id); };
   var E = function () { return root.SDGEngine; };
 
@@ -145,6 +145,35 @@
       $("rateline").style.display = "none";
     }
 
+    if (q.itinerary) {
+      var utc = function (c) {
+        var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
+        return a ? a.utcOffset : 0;
+      };
+      var L = root.SDGNetwork.localTime;
+      $("itin").innerHTML =
+        '<div class="itin-cap">Routing \u00b7 ' + q.itinerary.jumps + ' flight(s) \u00b7 ' +
+        Math.round(q.itinerary.transitSeconds / 3600) + ' h total \u00b7 ' +
+        Math.round(q.itinerary.km) + ' km</div>' +
+        q.itinerary.legs.map(function (l) {
+          return '<div class="itin-leg">' +
+            '<div class="itin-fl">' + esc(l.flightNumber || l.service) + '</div>' +
+            '<div class="itin-od"><strong>' + esc(l.origin) + '</strong> ' + L(l.departureUTC, utc(l.origin)) +
+            '<span class="itin-ar">\u2192</span>' +
+            '<strong>' + esc(l.destination) + '</strong> ' + L(l.arrivalUTC, utc(l.destination)) + '</div>' +
+            '<div class="itin-ac">' + esc(l.aircraft) + ' \u00b7 ' + esc(l.model) + ' \u00b7 ' + esc(l.tail) +
+            (l.via.length ? ' \u00b7 via ' + l.via.join(", ") : "") + '</div>' +
+            '</div>';
+        }).join("") +
+        '<div class="itin-note">Local times at each station. ' +
+        (q.regime === "SCHENGEN"
+          ? "Both stations are inside Schengen, so no customs clearance applies."
+          : "Customs regime: " + esc(q.regime) + ".") + '</div>';
+      $("itin").style.display = "";
+    } else if ($("itin")) {
+      $("itin").style.display = "none";
+    }
+
     var body = "";
     if (q.departure) {
       body += '<tr class="band"><td colspan="2">Charges at origin \u2014 prepaid</td></tr>';
@@ -174,7 +203,11 @@
       ["Currency", q.currency],
       ["Commodity", cargo]
     ];
-    if (q.transitDays) meta.push(["Transit", q.transitDays + " days"]);
+    if (q.itinerary) {
+      meta.push(["Departure", new Date(q.itinerary.departureUTC).toISOString().slice(0, 10)]);
+      meta.push(["Arrival", new Date(q.itinerary.arrivalUTC).toISOString().slice(0, 10)]);
+      meta.push(["Customs", q.regime]);
+    } else if (q.transitDays) meta.push(["Transit", q.transitDays + " days"]);
     $("doc-ref").innerHTML = meta.map(function (m) {
       return "<dt>" + esc(m[0]) + "</dt><dd>" + esc(m[1]) + "</dd>";
     }).join("");
@@ -185,8 +218,94 @@
         ' kg falls into a cheaper band and costs less. The lower figure is quoted.</div>'
       : "";
 
+    var endpoint = (DATA.config.quote || {}).endpoint;
+    if ($("send")) {
+      $("send").classList.toggle("on", !!(endpoint && q.itinerary));
+      $("sendMsg").textContent = "";
+      $("sendMsg").className = "send-msg";
+      $("sendBtn").disabled = false;
+      $("sendBtn").textContent = "Send";
+    }
+
     $("doc").classList.add("on");
     $("doc").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /* ── email the quotation ─────────────────────────────────────── */
+  function payload() {
+    var utc = function (c) {
+      var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
+      return a ? a.utcOffset : 0;
+    };
+    var L = root.SDGNetwork.localTime;
+    var name = function (c) {
+      var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
+      return a ? a.name : c;
+    };
+    var it = LAST.itinerary;
+    return {
+      pin: $("sendPin").value.trim(),
+      email: $("sendEmail").value.trim(),
+      reference: LAST.reference,
+      issued: new Date().toISOString().slice(0, 10),
+      validUntil: LAST.validUntil,
+      currency: LAST.currency,
+      origin: LAST.origin, destination: LAST.destination,
+      originName: name(LAST.origin), destinationName: name(LAST.destination),
+      commodity: $("cargoType").options[$("cargoType").selectedIndex].textContent,
+      pieces: LAST.rateLine.pieces,
+      grossWeight: LAST.rateLine.grossWeight,
+      chargeableWeight: LAST.chargeableWeight,
+      regime: LAST.regime,
+      rateLine: LAST.rateLine,
+      departure: LAST.departure,
+      arrival: LAST.arrival,
+      total: LAST.total,
+      itinerary: {
+        jumps: it.jumps, km: it.km, transitSeconds: it.transitSeconds,
+        legs: it.legs.map(function (l) {
+          return {
+            flightNumber: l.flightNumber, service: l.service, aircraft: l.aircraft,
+            model: l.model, tail: l.tail, origin: l.origin, destination: l.destination,
+            via: l.via,
+            departureLocal: L(l.departureUTC, utc(l.origin)),
+            arrivalLocal: L(l.arrivalUTC, utc(l.destination)),
+          };
+        }),
+      },
+    };
+  }
+
+  function sendByEmail() {
+    var msg = $("sendMsg"), btn = $("sendBtn");
+    var show = function (text, cls) { msg.textContent = text; msg.className = "send-msg " + (cls || ""); };
+    if (!LAST) return;
+    if (!$("sendPin").value.trim()) return show("Enter your Port Virtual Lab PIN.", "bad");
+    if ($("sendEmail").value.indexOf("@") < 1) return show("Enter a valid email address.", "bad");
+
+    btn.disabled = true; btn.textContent = "Sending";
+    show("Preparing the quotation\u2026");
+
+    fetch(DATA.config.quote.endpoint, {
+      method: "POST",
+      // Apps Script rejects a preflight, so the body goes as plain text.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload()),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res.ok) {
+          show("Sent to " + res.sentTo + " for " + res.institution + ".", "ok");
+          btn.textContent = "Sent";
+        } else {
+          show(res.error || "The quotation could not be sent.", "bad");
+          btn.disabled = false; btn.textContent = "Send";
+        }
+      })
+      .catch(function (err) {
+        show("Could not reach the quotation desk: " + err.message, "bad");
+        btn.disabled = false; btn.textContent = "Send";
+      });
   }
 
   function fail(msg) {
@@ -219,9 +338,26 @@
     if (MODE === "full" && input.origin === input.destination) return fail("Origin and destination must differ.");
     if (!(input.chargeableWeight > 0)) return fail("Enter dimensions or a chargeable weight above zero.");
 
+    var itinerary = null;
+    if (MODE === "full" && NET) {
+      var wanted = Date.parse(($("departDate").value || "") + "T00:00:00Z");
+      if (isNaN(wanted)) return fail("Enter a departure date.");
+      itinerary = root.SDGNetwork.route(NET, input.origin, input.destination, wanted, { horizonDays: 30 });
+      if (!itinerary) {
+        return fail("No service connects " + input.origin + " to " + input.destination +
+                    " within 30 days of " + $("departDate").value + ".");
+      }
+      input.distanceKm = itinerary.km;
+    }
+
+    if (MODE === "full") {
+      input.customs = E().customsApplies(DATA, input.origin, input.destination, input.customs);
+    }
+
     var q;
     if (MODE === "full") {
       q = E().fullQuote(DATA, input);
+      if (!q.error) { q.itinerary = itinerary; q.regime = E().customsRegime(DATA, input.origin, input.destination); }
     } else {
       var a = E().arrivalQuote(DATA, {
         airport: input.destination, chargeableWeight: input.chargeableWeight,
@@ -270,6 +406,12 @@
     MODE = mode;
     return root.SDGData.load().then(function (data) {
       DATA = data;
+      if (root.SDGNetwork && data.network) {
+        NET = root.SDGNetwork.buildNetwork({
+          airports: data.airports, services: data.network.services,
+          legs: data.network.legs, rotations: data.network.rotations,
+        });
+      }
 
       if (MODE === "full") airportOptions($("origin"), "\u2014 select origin \u2014");
       airportOptions($("destination"), "\u2014 select destination \u2014");
@@ -291,9 +433,13 @@
       };
       $("handling").onchange();
 
+      if ($("departDate") && !$("departDate").value) {
+        $("departDate").value = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+      }
       $("calc").onclick = calculate;
       $("print").onclick = function () { window.print(); };
       $("csv").onclick = exportCSV;
+      if ($("sendBtn")) $("sendBtn").onclick = sendByEmail;
 
       var active = data.airports.filter(function (a) { return a.active; }).length;
       if ($("s-airports")) $("s-airports").textContent = active + " stations";

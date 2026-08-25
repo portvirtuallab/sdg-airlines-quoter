@@ -188,9 +188,10 @@ scripts/
   test_network.mjs          checks the rotations close and every pair routes
 docs/                     ← what GitHub Pages publishes
   index.html                rating desk
-  quote.html                full quotation
+  quote.html                full quotation, routing and email
   arrival.html              arrival charges
-  assets/js/engine.js       the engine: no DOM, no dependencies
+  assets/js/engine.js       charges: freight, surcharges, handling, storage
+  assets/js/network.js      rotations, schedules and routing with connections
   assets/js/data.js         loads locally or from the sheet
   assets/js/ui.js           forms and the quotation document
   assets/css/sdg.css        the visual system
@@ -214,6 +215,39 @@ cd gas && clasp push && clasp deploy
 
 `gas/Code.gs` keeps the old links alive: `?page=quoter` reaches the full
 quotation and `?page=calculator` the arrival charges.
+
+---
+
+## Emailing the quotation
+
+`gas/Backend.gs` replaces Document Studio. The student fills in the form, enters
+their institution's PIN and an email address, and gets the PDF in their inbox.
+
+The PIN list lives in a Google Sheet that only the script can read, so a student
+cannot pull the other institutions' codes out of the page source. The page sends
+a PIN and gets back yes or no, nothing else.
+
+**Setting it up:**
+
+1. Create a spreadsheet. Put its id in `SHEET_ID` at the top of `gas/Backend.gs`.
+2. Add a tab called `Institutions` with these headers in row 1:
+   `institution | pin | contact_email | active`, one row per school.
+3. Push the script with clasp, then **Deploy → New deployment → Web app**,
+   executing as *Me*, access *Anyone*.
+4. Paste the `/exec` URL into `data/config.json` → `quote.endpoint`, commit.
+
+Leave `endpoint` blank and the email panel simply does not appear, so the site
+still works before the backend is wired up.
+
+## The quotation log
+
+Every quotation sent is appended to a `Quotation log` tab: reference, institution,
+route, weights, aircraft, dates, customs regime and total. Data only — **no PDFs
+are stored**, they are emailed and forgotten.
+
+The tab keeps the **50 most recent** rows and deletes the older ones on each new
+request. It is a rolling window for seeing what students are doing this week, not
+an archive. Change `LOG_KEEP` in `gas/Backend.gs` if you want a different depth.
 
 ---
 

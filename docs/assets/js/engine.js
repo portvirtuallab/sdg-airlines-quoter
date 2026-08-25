@@ -16,7 +16,12 @@
   }
 
   /* ── Chargeable weight ──────────────────────────────────────
-     pieces: [{ qty, weightKg, l, w, h }]   dimensions in cm       */
+     pieces: [{ qty, weightKg, l, w, h }]   dimensions in cm
+
+     The IATA factor is kilos per cubic METRE (167 kg/m3, equivalently
+     6000 cm3/kg). Centimetres must be converted to cubic metres first:
+       60 x 40 x 30 cm = 72,000 cm3 = 0.072 m3
+       0.072 m3 x 167 = 12.024 kg per piece                            */
   function chargeableWeight(pieces, volumetricFactor, rounding) {
     var vf = volumetricFactor || 167;
     var gross = 0, volumetric = 0;
@@ -24,7 +29,7 @@
       var qty = Number(p.qty) || 0;
       gross += qty * (Number(p.weightKg) || 0);
       var l = Number(p.l) || 0, w = Number(p.w) || 0, h = Number(p.h) || 0;
-      if (l && w && h) volumetric += qty * ((l * w * h) / vf);
+      if (l && w && h) volumetric += qty * ((l * w * h) / 1e6) * vf;
     });
     var cw = Math.max(gross, volumetric);
     return {
@@ -145,6 +150,18 @@
       lines: lines,
       subtotal: round2(lines.reduce(function (s, l) { return s + l.amount; }, 0))
     };
+  }
+
+  /* Inside Schengen there is no customs frontier, so clearance,
+     the customs cost and the import paperwork simply do not arise. */
+  function customsRegime(data, o, d) {
+    var m = data.customs || {};
+    return (m[o] && m[o][d]) || (m[d] && m[d][o]) || "WCO";
+  }
+
+  function customsApplies(data, o, d, requested) {
+    if (requested === false) return false;
+    return customsRegime(data, o, d) !== "SCHENGEN";
   }
 
   function distanceBetween(data, o, d) {
@@ -377,6 +394,8 @@
     arrivalQuote: arrivalQuote,
     fullQuote: fullQuote,
     surchargeLines: surchargeLines,
+    customsRegime: customsRegime,
+    customsApplies: customsApplies,
     distanceBetween: distanceBetween,
     formatMoney: formatMoney,
     round2: round2

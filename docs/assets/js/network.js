@@ -8,7 +8,10 @@
    leaving at a later stop of the same rotation is ONE flight with intermediate
    stops, not several connections. Only changing aircraft counts as a jump. */
 
-export function buildNetwork({ airports, services, legs, rotations }) {
+(function (root) {
+  "use strict";
+
+function buildNetwork({ airports, services, legs, rotations }) {
   const loops = new Map();
   for (const s of services) {
     loops.set(s.service, legs
@@ -49,7 +52,7 @@ export function buildNetwork({ airports, services, legs, rotations }) {
 
 /* Through-flights leaving `airport` in a window.
    Each result carries every downstream stop it serves. */
-export function flightsFrom(net, airport, fromMs, toMs, maxStops = 10) {
+function flightsFrom(net, airport, fromMs, toMs, maxStops = 10) {
   const out = [];
   for (const ac of net.fleet) {
     ac.legs.forEach((leg, i) => {
@@ -82,7 +85,7 @@ export function flightsFrom(net, airport, fromMs, toMs, maxStops = 10) {
 }
 
 /* Earliest arrival with at most `maxJumps` flights. */
-export function route(net, origin, destination, notBeforeMs, opts = {}) {
+function route(net, origin, destination, notBeforeMs, opts = {}) {
   const maxJumps = opts.maxJumps ?? 3;
   const minConnect = (opts.minConnectMinutes ?? 90) * 60000;
   const horizon = (opts.horizonDays ?? 30) * 86400000;
@@ -133,5 +136,14 @@ export function route(net, origin, destination, notBeforeMs, opts = {}) {
   };
 }
 
-export const localTime = (ms, offsetHours) =>
-  new Date(ms + offsetHours * 3600000).toISOString().replace("T", " ").slice(0, 16);
+  function localTime(ms, offsetHours) {
+    return new Date(ms + (offsetHours || 0) * 3600000).toISOString().replace("T", " ").slice(0, 16);
+  }
+
+  root.SDGNetwork = {
+    buildNetwork: buildNetwork,
+    flightsFrom: flightsFrom,
+    route: route,
+    localTime: localTime,
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);

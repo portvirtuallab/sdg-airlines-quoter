@@ -28,11 +28,17 @@ check("BCN arrival 500 kg - terminal handling", arr.lines.find(l => l.code === "
 check("BCN arrival 500 kg - import documentation", arr.lines.find(l => l.code === "DB").amount, 38);
 check("BCN arrival 500 kg - TOTAL", arr.subtotal, 269.53);
 
-// -- Case 2: chargeable weight driven by volume
-const cw = E.chargeableWeight([{ qty: 4, weightKg: 100, l: 120, w: 100, h: 100 }], 167, 0.5);
-check("gross weight", cw.gross, 400);
-check("volumetric weight", cw.volumetric, 4 * (120 * 100 * 100) / 167);
-check("chargeable = volumetric", cw.chargeable, Math.ceil((4 * 1200000 / 167) / 0.5) * 0.5);
+// -- Case 2: chargeable weight, 30 pieces of 20 kg at 60 x 40 x 30 cm
+const cw = E.chargeableWeight([{ qty: 30, weightKg: 20, l: 60, w: 40, h: 30 }], 167, 0.5);
+check("gross weight", cw.gross, 600);
+check("volumetric weight", cw.volumetric, 360.72);
+check("chargeable is the gross weight", cw.chargeable, 600);
+console.log(`  ok    rated on: ${cw.basis}`);
+
+// A dense piece: 1 m3 of feathers weighing 50 kg rates as 167 kg
+const light = E.chargeableWeight([{ qty: 1, weightKg: 50, l: 100, w: 100, h: 100 }], 167, 0.5);
+check("one cubic metre rates at the factor", light.volumetric, 167);
+check("volume wins over actual weight", light.chargeable, 167);
 
 // -- Case 3: weight break
 // To ALG: 95 kg at 5.15 = 489.25; 100 kg at 5.15 = 515, so no break.

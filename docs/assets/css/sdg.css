@@ -244,6 +244,18 @@ a{color:inherit;text-decoration:none}
 }
 .tool:hover{background:var(--rule-3);color:var(--paper);border-color:var(--rule-3)}
 
+/* itinerary strip */
+.itin{border-bottom:2px solid var(--rule-3);background:var(--form-alt)}
+.itin-cap{padding:8px 26px;background:var(--rule-3);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.itin-leg{display:grid;grid-template-columns:78px 1fr;gap:4px 16px;padding:12px 26px;border-bottom:1px solid var(--rule)}
+.itin-fl{grid-row:1/3;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--carbon);align-self:center}
+.itin-od{font-family:'IBM Plex Mono',monospace;font-size:13px}
+.itin-od strong{font-weight:600}
+.itin-ar{color:var(--carbon);margin:0 10px}
+.itin-ac{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-3)}
+.itin-note{padding:10px 26px;font-size:12px;color:var(--ink-2)}
+@media(max-width:860px){.itin-leg{grid-template-columns:1fr;padding:12px 16px}.itin-fl{grid-row:auto}.itin-cap,.itin-note{padding-left:16px;padding-right:16px}}
+
 /* the rate line — AWB box 22, the signature element */
 .rateline{border-bottom:2px solid var(--rule-3)}
 .rateline-cap{
@@ -314,6 +326,18 @@ a{color:inherit;text-decoration:none}
   padding:6px 18px;letter-spacing:.01em;
 }
 
+.send{display:none;padding:18px 26px;border-top:1px solid var(--rule-2);background:var(--stamp-tint)}
+.send.on{display:block}
+.send-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--stamp);margin-bottom:10px}
+.send-row{display:grid;grid-template-columns:1fr 1.4fr auto;gap:12px;align-items:end}
+.btn-send{height:35px;padding:0 26px;border:none;border-radius:0;background:var(--stamp);color:#fff;cursor:pointer;font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 115;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.btn-send:hover{background:var(--rule-3)}
+.btn-send:disabled{opacity:.5;cursor:default}
+.send-msg{margin-top:10px;font-size:12.5px;min-height:18px}
+.send-msg.ok{color:var(--stamp);font-weight:500}
+.send-msg.bad{color:var(--carbon)}
+@media(max-width:860px){.send-row{grid-template-columns:1fr}.btn-send{width:100%}}
+@media print{.send{display:none!important}}
 .terms{padding:18px 26px;border-top:1px solid var(--rule-2);background:var(--form-alt)}
 .terms-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
 .terms-x{font-size:12px;color:var(--ink-2);line-height:1.6;max-width:66ch}

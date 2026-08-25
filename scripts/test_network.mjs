@@ -1,7 +1,10 @@
 /* Checks the rotation engine against the timetable the spreadsheet published.
    Run: node scripts/test_network.mjs                                        */
 import fs from "node:fs";
-import { buildNetwork, flightsFrom, route } from "../docs/assets/js/network.js";
+import vm from "node:vm";
+const ctx = { console }; vm.createContext(ctx);
+vm.runInContext(fs.readFileSync("docs/assets/js/network.js", "utf8"), ctx);
+const { buildNetwork, flightsFrom, route } = ctx.SDGNetwork;
 
 const csv = f => {
   const [h, ...rows] = fs.readFileSync(f, "utf8").trim().split("\n");

@@ -55,6 +55,11 @@
         <select id="currency"></select>
       </div>
       <div class="field">
+        <label for="departDate">Ready for departure on <span class="req">*</span></label>
+        <input type="date" id="departDate">
+        <div class="note">The first service on or after this date is quoted</div>
+      </div>
+      <div class="field">
         <label for="mawbs">Master air waybills</label>
         <input type="number" id="mawbs" value="1" min="1" step="1">
       </div>
@@ -102,9 +107,10 @@
       <div class="field">
         <label for="customs">Customs clearance</label>
         <select id="customs">
-          <option value="yes">Required — clearance and documentation apply</option>
+          <option value="yes">As the route requires</option>
           <option value="no">Not required</option>
         </select>
+        <div class="note">Schengen to Schengen is exempt automatically</div>
       </div>
       <div class="field">
         <label for="storageDays">Days in the destination warehouse</label>
@@ -134,6 +140,7 @@
           </div>
         </div>
       </div>
+      <div class="itin" id="itin"></div>
       <div class="rateline" id="rateline"></div>
       <table class="ledger"><tbody id="ledger"></tbody></table>
       <div class="grand">
@@ -142,6 +149,21 @@
           <div class="grand-sub">Prepaid at origin plus charges due at destination</div>
         </div>
         <div class="grand-v" id="grand"></div>
+      </div>
+      <div class="send" id="send">
+        <div class="send-k">Have this quotation emailed to you</div>
+        <div class="send-row">
+          <div class="field" style="padding:0">
+            <label for="sendPin">Port Virtual Lab PIN <span class="req">*</span></label>
+            <input type="text" id="sendPin" autocomplete="off" placeholder="your institution's code">
+          </div>
+          <div class="field" style="padding:0">
+            <label for="sendEmail">Email address <span class="req">*</span></label>
+            <input type="email" id="sendEmail" autocomplete="email" placeholder="you@school.edu">
+          </div>
+          <button class="btn-send" id="sendBtn" type="button">Send</button>
+        </div>
+        <div class="send-msg" id="sendMsg"></div>
       </div>
       <div class="terms">
         <div class="terms-k">Conditions</div>
@@ -162,6 +184,7 @@
 </footer>
 
 <script src="assets/js/engine.js"></script>
+<script src="assets/js/network.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script>SDGUI.init('full');</script>
