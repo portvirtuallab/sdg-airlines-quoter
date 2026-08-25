@@ -6,7 +6,7 @@
 <title>SDG Airlines — Air cargo tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,300..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/sdg.css">
 </head>
 <body>
@@ -35,6 +35,14 @@
     <div class="strip-cell"><span class="strip-k">Status</span><span class="strip-v ok">Open</span></div>
   </div>
   </div>
+</div>
+
+<div class="mapwrap">
+  <figure class="mapfig">
+    <svg id="map" role="img" aria-label="SDG Airlines network: the active stations and the legs of every rotation"></svg>
+    <div class="maplegend" id="maplegend"></div>
+  </figure>
+  <p class="map-cap">Hover a service to follow its rotation. Hubs are marked in blue.</p>
 </div>
 
 <div class="desks">
@@ -73,6 +81,7 @@
 
 <script src="assets/js/engine.js"></script>
 <script src="assets/js/data.js"></script>
+<script src="assets/js/map.js"></script>
 <script>
 SDGData.load().then(function (d) {
   document.getElementById('n-airports').textContent =
@@ -81,6 +90,7 @@ SDGData.load().then(function (d) {
   Object.keys(d.routes).forEach(function (o) { lanes += Object.keys(d.routes[o]).length; });
   document.getElementById('n-lanes').textContent = lanes + ' lanes';
   document.getElementById('n-updated').textContent = (d.generated_at || '').slice(0, 10) || '—';
+  SDGMap.draw(document.getElementById('map'), document.getElementById('maplegend'), d);
 }).catch(function (e) {
   document.getElementById('n-airports').textContent = 'unavailable';
   console.error(e);
