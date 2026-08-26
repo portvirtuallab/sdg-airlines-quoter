@@ -235,9 +235,14 @@ def build():
         if i not in (set().union(*[set(x["parties"]) for x in incoterms]) if incoterms else set()):
             errors.append(f"incoterms.csv has no column for Incoterm {i}")
 
-    # Every charge the engine can emit must have a row, or a quotation
-    # would show a line nobody is said to pay.
-    emitted = {"WT", "AW", "TH", "SD", "CH", "DB", "LB", "LU", "TD", "ST"}
+    # Every charge the engine can emit must have a row, or a quotation would
+    # show a line nobody is said to pay.
+    #
+    # This list is a hand-kept copy of the codes engine.js pushes, so it has to
+    # be edited alongside it. Retiring ULD handling and forgetting to drop "LU"
+    # from here failed the build until the two agreed again — which is the
+    # check working, but the coupling is worth knowing about.
+    emitted = {"WT", "AW", "TH", "SD", "CH", "DB", "LB", "TD", "ST"}
     emitted |= {s["code"] for s in surcharges if s["code"]}
     for c in sorted(emitted - ic_seen):
         errors.append(f"charge {c} is quoted by the engine but has no row in incoterms.csv")
