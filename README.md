@@ -141,6 +141,50 @@ node scripts/test_engine.mjs
 
 ---
 
+## Incoterms
+
+The quotation asks for an Incoterm — FCA, CPT, CIP or DAP, the four Incoterms
+2020 recommends for air cargo — and then marks every charge with the party that
+bears it, with a subtotal for each side.
+
+**The total never changes.** The same shipment costs the same under every
+Incoterm; what moves is where the line between seller and buyer falls. BCN to
+Lisbon with 95 kg is 635.50 either way, split 42.14 / 593.36 under FCA and
+561.01 / 74.49 under DAP.
+
+Who pays what lives in `data/incoterms.csv`, one row per charge and one column
+per Incoterm:
+
+```csv
+code,label,stage,FCA,CPT,CIP,DAP
+TH,Terminal handling at origin,origin,seller,seller,seller,seller
+WT,Weight charge,origin,buyer,seller,seller,seller
+CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer
+```
+
+So the allocation is arguable in a spreadsheet rather than buried in
+JavaScript — useful, because several of these calls genuinely are debatable.
+The build refuses to publish if the engine can quote a charge that has no row.
+
+Three lines carry no amount and exist so the Incoterm reads honestly:
+pre-carriage, on-carriage and import duties. A DAP quotation that silently
+omitted on-carriage would teach the wrong lesson. They show as *quoted
+separately* and link to the road haulier set in
+`config.json → partners.road_haulier`. Leave the `url` blank and the lines
+still appear, simply without a link.
+
+**Arrival charges are unaffected.** `arrival.html` takes no Incoterm and looks
+exactly as it always did, so a student who only wants the destination figure
+does not have to build a whole quotation. Both pages call the same engine
+function, so the numbers agree to the cent.
+
+**CIP needs a rate.** CIP differs from CPT only by the insurance the seller
+takes out, and `config.json → insurance` ships at zero, so the line appears
+flagged and the two Incoterms cost the same. Set
+`pct_of_insured_value` to separate them.
+
+---
+
 ## Charge codes
 
 Quotations use IATA-style codes so the breakdown reads like a real one.

@@ -133,6 +133,9 @@
       amount: round2(25 * mawbs)
     });
 
+    var ins = insuranceLine(data, input.incoterm, fr.amount, input.insuredValue);
+    if (ins) lines.push(ins);
+
     return {
       origin: input.origin,
       destination: input.destination,
@@ -196,6 +199,70 @@
         inactive: off,
       };
     });
+  }
+
+  /* ── Incoterms ───────────────────────────────────────────────
+     Who bears each charge comes from data/incoterms.csv, one row per
+     charge and one column per Incoterm. The engine only looks the
+     answer up; the allocation itself is data, open to argument.
+
+     The total never changes with the Incoterm — the same shipment costs
+     the same. What changes is where the line between the two parties
+     falls, so the two subtotals move and the total does not.          */
+  function incotermRow(data, code) {
+    var rows = data.incoterms || [];
+    for (var i = 0; i < rows.length; i++) if (rows[i].code === code) return rows[i];
+    return null;
+  }
+
+  function partyFor(data, code, incoterm) {
+    if (!incoterm) return null;
+    var r = incotermRow(data, code);
+    if (!r) return null;
+    var p = r.parties && r.parties[incoterm];
+    return p && p !== "none" ? p : null;
+  }
+
+  /* Pre-carriage, on-carriage and duties are real costs of the door-to-door
+     move that this airline does not sell. They are listed so the Incoterm
+     reads honestly — a DAP quotation that silently omitted on-carriage would
+     teach the wrong lesson — carried at zero and marked as quoted elsewhere. */
+  function infoLines(data, stage, incoterm) {
+    if (!incoterm) return [];
+    var hauler = ((data.config.partners || {}).road_haulier) || {};
+    return (data.incoterms || [])
+      .filter(function (r) { return r.stage === stage; })
+      .map(function (r) {
+        var party = r.parties[incoterm];
+        if (!party || party === "none") return null;
+        var road = r.code === "PRE" || r.code === "ONC";
+        return {
+          code: r.code, due: "X", label: r.label, party: party,
+          detail: road
+            ? "not sold by the airline · quoted by " + (hauler.name || "the road haulier")
+            : "payable to the customs authority on import · not quoted here",
+          href: road ? (hauler.url || "") : "",
+          amount: 0, info: true
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function insuranceLine(data, incoterm, freight, insuredValue) {
+    if (partyFor(data, "INS", incoterm) === null) return null;
+    var cfg = data.config.insurance || {};
+    var pct = Number(cfg.pct_of_insured_value) || 0;
+    var min = Number(cfg.minimum) || 0;
+    var base = freight + (Number(insuredValue) || 0);
+    var amount = Math.max(min, pct * base);
+    return {
+      code: "INS", due: "C", label: "Cargo insurance",
+      detail: pct > 0
+        ? (pct * 100).toFixed(2) + "% of " + base.toFixed(2) + " (weight charge plus declared value)"
+        : "no rate configured — set config.insurance.pct_of_insured_value",
+      amount: round2(amount),
+      inactive: pct <= 0 && min <= 0
+    };
   }
 
   function thcFamily(data, cargoTypeId) {
@@ -336,17 +403,30 @@
     });
     if (arr.error) return arr;
 
-    function convert(block) {
-      return {
-        lines: block.lines.map(function (l) {
-          return { code: l.code, due: l.due, label: l.label, detail: l.detail,
-                   inactive: l.inactive, amount: round2(l.amount * fx) };
-        }),
-        subtotal: round2(block.subtotal * fx)
-      };
+    var ic = input.incoterm || null;
+
+    function convert(block, stage) {
+      var lines = block.lines.map(function (l) {
+        return { code: l.code, due: l.due, label: l.label, detail: l.detail,
+                 inactive: l.inactive, info: l.info, href: l.href,
+                 party: l.party || partyFor(data, l.code, ic),
+                 amount: round2(l.amount * fx) };
+      });
+      // Pre-carriage opens the origin block; on-carriage and duties close
+      // the arrival one, in the order the shipment actually meets them.
+      var info = infoLines(data, stage, ic);
+      lines = stage === "info_origin" ? info.concat(lines) : lines.concat(info);
+      return { lines: lines, subtotal: round2(block.subtotal * fx) };
     }
 
-    var d = convert(dep), a = convert(arr);
+    var d = convert(dep, "info_origin"), a = convert(arr, "info_arrival");
+
+    function sideTotal(who) {
+      return round2(d.lines.concat(a.lines).reduce(function (s, l) {
+        return s + (l.party === who && !l.info ? l.amount : 0);
+      }, 0));
+    }
+    var seller = sideTotal("seller"), buyer = sideTotal("buyer");
     return {
       reference: reference(data, input),
       currency: cur,
@@ -364,6 +444,12 @@
       departure: d,
       arrival: a,
       total: round2(d.subtotal + a.subtotal),
+      incoterm: ic,
+      incotermInfo: ic ? (data.config.incoterms.list || []).filter(function (i) {
+        return i.id === ic;
+      })[0] || null : null,
+      sellerTotal: seller,
+      buyerTotal: buyer,
       validUntil: validUntil(data)
     };
   }
@@ -396,6 +482,7 @@
     surchargeLines: surchargeLines,
     customsRegime: customsRegime,
     customsApplies: customsApplies,
+    partyFor: partyFor,
     distanceBetween: distanceBetween,
     formatMoney: formatMoney,
     round2: round2

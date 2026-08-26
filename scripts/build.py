@@ -200,9 +200,52 @@ def build():
             "note": (r.get("note") or "").strip(),
         })
 
+    # -- Incoterms: who bears each charge --------------------------
+    # One row per charge, one column per Incoterm. Kept as data so the
+    # allocation can be argued over and corrected without touching code.
+    ic_ids = [i["id"] for i in (config.get("incoterms", {}).get("list") or [])]
+    incoterms = []
+    ic_seen = set()
+    for r in read("incoterms.csv"):
+        code = (r.get("code") or "").strip()
+        where = f"incoterms[{code or '?'}]"
+        if not code:
+            errors.append(f"{where}: missing charge code")
+            continue
+        if code in ic_seen:
+            errors.append(f"{where}: duplicate charge code")
+            continue
+        ic_seen.add(code)
+        stage = (r.get("stage") or "").strip()
+        if stage not in ("origin", "arrival", "info_origin", "info_arrival"):
+            errors.append(f"{where}: stage {stage!r} is not origin, arrival, "
+                          f"info_origin or info_arrival")
+        parties = {}
+        for i in ic_ids:
+            p = (r.get(i) or "").strip().lower()
+            if p not in ("seller", "buyer", "none"):
+                errors.append(f"{where}: {i} is {p!r}, must be seller, buyer or none")
+            parties[i] = p
+        incoterms.append({
+            "code": code, "label": (r.get("label") or code).strip(),
+            "stage": stage, "parties": parties,
+        })
+
+    for i in ic_ids:
+        if i not in (set().union(*[set(x["parties"]) for x in incoterms]) if incoterms else set()):
+            errors.append(f"incoterms.csv has no column for Incoterm {i}")
+
+    # Every charge the engine can emit must have a row, or a quotation
+    # would show a line nobody is said to pay.
+    emitted = {"WT", "AW", "TH", "SD", "CH", "DB", "LB", "LU", "TD", "ST"}
+    emitted |= {s["code"] for s in surcharges if s["code"]}
+    for c in sorted(emitted - ic_seen):
+        errors.append(f"charge {c} is quoted by the engine but has no row in incoterms.csv")
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "config": config,
+        "incoterms": incoterms,
         "airports": [airports[c] for c in sorted(airports)],
         "network": {
             "services": list(services.values()),

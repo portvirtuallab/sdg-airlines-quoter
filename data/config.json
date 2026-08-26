@@ -57,6 +57,47 @@
       "storage": "gen"
     }
   ],
+  "incoterms": {
+    "default": "CPT",
+    "list": [
+      {
+        "id": "FCA",
+        "label": "FCA — Free Carrier",
+        "place": "airport of departure",
+        "note": "The buyer contracts and pays the air carriage. The seller delivers the cargo cleared for export to the carrier at the departure airport."
+      },
+      {
+        "id": "CPT",
+        "label": "CPT — Carriage Paid To",
+        "place": "airport of destination",
+        "note": "The seller pays the air carriage to the destination airport. Risk passes to the buyer when the cargo is handed to the first carrier."
+      },
+      {
+        "id": "CIP",
+        "label": "CIP — Carriage and Insurance Paid To",
+        "place": "airport of destination",
+        "note": "As CPT, and the seller also takes out cargo insurance for the benefit of the buyer."
+      },
+      {
+        "id": "DAP",
+        "label": "DAP — Delivered At Place",
+        "place": "the buyer's premises",
+        "note": "The seller bears every cost to the named place except import clearance, duties and taxes."
+      }
+    ]
+  },
+  "insurance": {
+    "pct_of_insured_value": 0,
+    "minimum": 0,
+    "note": "Applied on CIP only, on the weight charge plus the declared value of the goods. Both figures are zero until the programme sets its own rate, so the CIP insurance line shows at zero and is flagged."
+  },
+  "partners": {
+    "road_haulier": {
+      "name": "Haulier Services",
+      "url": "",
+      "note": "Inland transport is quoted by this company, not by the airline. With the url blank the pre-carriage and on-carriage lines still appear, simply without a link."
+    }
+  },
   "quote": {
     "reference_prefix": "SDG",
     "validity_days": 15,

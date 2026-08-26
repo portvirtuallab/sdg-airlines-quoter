@@ -44,6 +44,20 @@
       select.appendChild(el("option", { value: c.id }, c.label));
     });
   }
+  function incotermOptions(select, note) {
+    var cfg = DATA.config.incoterms || {};
+    (cfg.list || []).forEach(function (i) {
+      select.appendChild(el("option", { value: i.id }, esc(i.label)));
+    });
+    if (cfg.default) select.value = cfg.default;
+    function explain() {
+      var chosen = (cfg.list || []).filter(function (i) { return i.id === select.value; })[0];
+      if (note && chosen) note.textContent = chosen.note;
+    }
+    select.addEventListener("change", explain);
+    explain();
+  }
+
   function currencyOptions(select) {
     select.innerHTML = "";
     Object.keys(DATA.config.currencies).forEach(function (c) {
@@ -115,10 +129,23 @@
   }
 
   function chargeRow(l) {
-    return '<tr' + (l.inactive ? ' class="off"' : '') + '><td><span class="c-code">' + esc(l.code) + '</span>' +
-      '<span class="c-name">' + esc(l.label) + '</span>' +
+    // The party pill only appears once an Incoterm has been chosen, so the
+    // arrival-charges page and a quotation without one look exactly as before.
+    var pill = l.party
+      ? '<span class="who ' + l.party + '">' + (l.party === "seller" ? "Seller" : "Buyer") + '</span>'
+      : '';
+    var name = l.href
+      ? '<a class="c-name out" href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
+        esc(l.label) + '</a>'
+      : '<span class="c-name">' + esc(l.label) + '</span>';
+    var value = l.info
+      ? '<span class="amt none">quoted separately</span>'
+      : '<span class="amt">' + money(l.amount) + '</span>';
+    var cls = [l.inactive ? "off" : "", l.info ? "info" : ""].join(" ").trim();
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td><span class="c-code">' + esc(l.code) + '</span>' +
+      name + pill +
       '<div class="c-detail">' + esc(l.detail) + '</div></td>' +
-      '<td><span class="amt">' + money(l.amount) + '</span></td></tr>';
+      '<td>' + value + '</td></tr>';
   }
 
   function render(q) {
@@ -185,6 +212,23 @@
     if (q.departure) {
       body += '<tr class="sub-row"><td>Subtotal at destination</td><td><span class="amt">' + money(q.arrival.subtotal) + '</span></td></tr>';
     }
+
+    // The Incoterm split. Both sides add up to the same total: the shipment
+    // costs what it costs, the Incoterm only says where the line falls.
+    if (q.incoterm) {
+      var ii = q.incotermInfo || {};
+      body += '<tr class="band"><td colspan="2">' + esc(q.incoterm) +
+        ' — delivered at ' + esc(ii.place || "") + '</td></tr>';
+      body += '<tr class="split"><td><span class="who seller">Seller</span>' +
+        '<span class="c-name">Borne by the seller</span></td>' +
+        '<td><span class="amt">' + money(q.sellerTotal) + '</span></td></tr>';
+      body += '<tr class="split"><td><span class="who buyer">Buyer</span>' +
+        '<span class="c-name">Borne by the buyer</span></td>' +
+        '<td><span class="amt">' + money(q.buyerTotal) + '</span></td></tr>';
+      if (ii.note) {
+        body += '<tr class="icnote"><td colspan="2">' + esc(ii.note) + '</td></tr>';
+      }
+    }
     $("ledger").innerHTML = body;
 
     $("grand").textContent = money(q.total);
@@ -203,6 +247,7 @@
       ["Currency", q.currency],
       ["Commodity", cargo]
     ];
+    if (q.incoterm) meta.splice(4, 0, ["Incoterm", q.incoterm]);
     if (q.itinerary) {
       meta.push(["Departure", new Date(q.itinerary.departureUTC).toISOString().slice(0, 10)]);
       meta.push(["Arrival", new Date(q.itinerary.arrivalUTC).toISOString().slice(0, 10)]);
@@ -330,7 +375,8 @@
       handling: $("handling").value,
       ulds: parseInt($("ulds").value, 10) || 1,
       storageDays: parseInt($("storageDays").value, 10) || 0,
-      currency: $("currency").value
+      currency: $("currency").value,
+      incoterm: (MODE === "full" && $("incoterm")) ? $("incoterm").value : null
     };
 
     if (MODE === "full" && !input.origin) return fail("Select an airport of origin.");
@@ -417,6 +463,9 @@
       airportOptions($("destination"), "\u2014 select destination \u2014");
       cargoOptions($("cargoType"));
       currencyOptions($("currency"));
+      if (MODE === "full" && $("incoterm")) {
+        incotermOptions($("incoterm"), $("incotermNote"));
+      }
 
       if (MODE === "full") {
         $("lines").appendChild(consignmentLine());
