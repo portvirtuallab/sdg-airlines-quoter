@@ -311,25 +311,17 @@
       });
     }
 
-    if (input.handling === "ULD") {
-      var ulds = Math.max(1, Number(input.ulds) || 1);
-      lines.push({
-        code: "LU",
-        due: "C",
-        label: "Truck loading \u2014 ULD",
-        detail: t.truck_uld_fee.toFixed(2) + " per ULD \u00d7 " + ulds,
-        amount: round2(Math.max(t.truck_uld_min, t.truck_uld_fee * ulds))
-      });
-    } else {
-      lines.push({
-        code: "LB",
-        due: "C",
-        label: "Truck loading \u2014 bulk",
-        detail: "greater of " + t.truck_bulk_min.toFixed(2) + " or " + t.truck_bulk_fee_mawb.toFixed(2) +
-          " \u00d7 " + mawbs + " MAWB + " + t.truck_bulk_rate.toFixed(3) + "/kg \u00d7 " + cw + " kg",
-        amount: round2(Math.max(t.truck_bulk_min, t.truck_bulk_fee_mawb * mawbs + t.truck_bulk_rate * cw))
-      });
-    }
+    // The airline carries loose cargo only, so truck loading is always rated
+    // on the bulk tariff. The ULD columns stay in ground_charges.csv against
+    // the day unitised cargo is offered again.
+    lines.push({
+      code: "LB",
+      due: "C",
+      label: "Truck loading \u2014 loose cargo",
+      detail: "greater of " + t.truck_bulk_min.toFixed(2) + " or " + t.truck_bulk_fee_mawb.toFixed(2) +
+        " \u00d7 " + mawbs + " MAWB + " + t.truck_bulk_rate.toFixed(3) + "/kg \u00d7 " + cw + " kg",
+      amount: round2(Math.max(t.truck_bulk_min, t.truck_bulk_fee_mawb * mawbs + t.truck_bulk_rate * cw))
+    });
 
     var fam = thcFamily(data, input.cargoType);
     lines.push({

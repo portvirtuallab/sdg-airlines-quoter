@@ -74,7 +74,19 @@
         '<input type="number" ' + attrs + ' data-k="' + k + '" value="' + val +
         '" aria-label="' + label + '"></div>';
     };
+    // What the goods actually are, on its own row above the figures: the air
+    // waybill needs a description, and the HS code is what customs rates the
+    // duty on. Both are free text and neither affects the arithmetic.
+    var text = function (k, label, val, ph) {
+      return '<div><span class="ll">' + label + '</span>' +
+        '<input type="text" data-k="' + k + '" value="' + esc(val || "") +
+        '" placeholder="' + ph + '" aria-label="' + label + '"></div>';
+    };
     row.innerHTML =
+      '<div class="line-goods">' +
+        text("desc", "Description of goods", v.desc, "what is in the box") +
+        text("hs", "HS code", v.hs, "e.g. 8471.30") +
+      '</div>' +
       cell("qty", "Pieces", v.qty, 'min="1" step="1"') +
       cell("weightKg", "Weight each (kg)", v.weightKg, 'min="0" step="0.1"') +
       cell("l", "Length (cm)", v.l, 'min="0"') +
@@ -91,7 +103,9 @@
   function readLines() {
     return Array.prototype.map.call($("lines").querySelectorAll(".line"), function (r) {
       var o = {};
-      r.querySelectorAll("input").forEach(function (i) { o[i.dataset.k] = parseFloat(i.value) || 0; });
+      r.querySelectorAll("input").forEach(function (i) {
+        o[i.dataset.k] = i.type === "text" ? i.value.trim() : (parseFloat(i.value) || 0);
+      });
       return o;
     });
   }
@@ -170,6 +184,26 @@
       $("rateline").style.display = "";
     } else {
       $("rateline").style.display = "none";
+    }
+
+    // Box 22 of an air waybill names the goods. Only lines the student
+    // actually described are listed, so an unfilled form stays clean.
+    if ($("goods")) {
+      var described = (q.goods || []).filter(function (g) { return g.desc || g.hs; });
+      if (described.length) {
+        $("goods").innerHTML =
+          '<div class="goods-cap">Nature and quantity of goods</div>' +
+          described.map(function (g) {
+            return '<div class="goods-row">' +
+              '<span class="goods-d">' + esc(g.desc || "Not described") + '</span>' +
+              (g.hs ? '<span class="goods-hs">HS ' + esc(g.hs) + '</span>' : '') +
+              '<span class="goods-q">' + (g.qty || 0) + ' pce · ' +
+              ((g.qty || 0) * (g.weightKg || 0)).toFixed(1) + ' kg</span></div>';
+          }).join("");
+        $("goods").style.display = "";
+      } else {
+        $("goods").style.display = "none";
+      }
     }
 
     if (q.itinerary) {
@@ -372,8 +406,6 @@
       mawbs: parseInt($("mawbs").value, 10) || 1,
       cargoType: $("cargoType").value,
       customs: $("customs").value === "yes",
-      handling: $("handling").value,
-      ulds: parseInt($("ulds").value, 10) || 1,
       storageDays: parseInt($("storageDays").value, 10) || 0,
       currency: $("currency").value,
       incoterm: (MODE === "full" && $("incoterm")) ? $("incoterm").value : null
@@ -403,12 +435,12 @@
     var q;
     if (MODE === "full") {
       q = E().fullQuote(DATA, input);
-      if (!q.error) { q.itinerary = itinerary; q.regime = E().customsRegime(DATA, input.origin, input.destination); }
+      if (!q.error) { q.itinerary = itinerary; q.goods = readLines(); q.regime = E().customsRegime(DATA, input.origin, input.destination); }
     } else {
       var a = E().arrivalQuote(DATA, {
         airport: input.destination, chargeableWeight: input.chargeableWeight,
         mawbs: input.mawbs, cargoType: input.cargoType, customs: input.customs,
-        handling: input.handling, ulds: input.ulds, storageDays: input.storageDays
+        storageDays: input.storageDays
       });
       if (a.error) return fail(a.error);
       var fx = (DATA.config.currencies[input.currency] || {}).rate_from_base || 1;
@@ -476,11 +508,6 @@
             ? parseFloat(this.value).toFixed(1) + " kg" : tally().chargeable.toFixed(1) + " kg";
         });
       }
-
-      $("handling").onchange = function () {
-        $("uldField").style.display = this.value === "ULD" ? "" : "none";
-      };
-      $("handling").onchange();
 
       if ($("departDate") && !$("departDate").value) {
         $("departDate").value = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);

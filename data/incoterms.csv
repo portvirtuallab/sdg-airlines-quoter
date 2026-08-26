@@ -12,8 +12,7 @@ PSS,Peak season surcharge,origin,buyer,seller,seller,seller
 INS,Cargo insurance,origin,none,none,seller,none
 SD,Security at arrival,arrival,buyer,buyer,buyer,seller
 TD,Terminal handling at destination,arrival,buyer,buyer,buyer,seller
-LB,Truck loading at destination - bulk,arrival,buyer,buyer,buyer,seller
-LU,Truck loading at destination - ULD,arrival,buyer,buyer,buyer,seller
+LB,Truck loading at destination - loose cargo,arrival,buyer,buyer,buyer,seller
 CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer
 DB,Import documentation handling,arrival,buyer,buyer,buyer,buyer
 ST,Storage at destination,arrival,buyer,buyer,buyer,buyer

@@ -185,6 +185,21 @@ flagged and the two Incoterms cost the same. Set
 
 ---
 
+## The consignment
+
+Each line carries a **description of the goods** and an **HS code** beside the
+pieces, weight and dimensions. Both are free text and neither touches the
+arithmetic; the description is printed on the quotation under *Nature and
+quantity of goods*, which is box 22 of an air waybill, and the HS code is what
+customs would rate the duty on.
+
+**Loose cargo only.** The airline does not offer unitised cargo, so truck
+loading at destination is always rated on the bulk tariff and there is no ULD
+count to enter. The `truck_uld_*` columns stay in `ground_charges.csv` against
+the day ULDs are offered again.
+
+---
+
 ## Charge codes
 
 Quotations use IATA-style codes so the breakdown reads like a real one.
@@ -199,7 +214,7 @@ Quotations use IATA-style codes so the breakdown reads like a real one.
 | `SD` | Security at arrival |
 | `CH` | Customs clearance formalities |
 | `DB` | Import documentation handling |
-| `LB` / `LU` | Truck loading, bulk or ULD |
+| `LB` | Truck loading, loose cargo |
 | `TD` | Terminal handling at destination |
 | `ST` | Storage |
 

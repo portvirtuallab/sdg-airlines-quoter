@@ -103,17 +103,6 @@
     <div class="box-head"><span class="box-n">3</span><span class="box-t">Handling at destination</span></div>
     <div class="fields">
       <div class="field">
-        <label for="handling">Handling <span class="req">*</span></label>
-        <select id="handling">
-          <option value="Bulk">Bulk — loose cargo</option>
-          <option value="ULD">ULD — unit load device</option>
-        </select>
-      </div>
-      <div class="field" id="uldField">
-        <label for="ulds">Number of ULDs</label>
-        <input type="number" id="ulds" value="1" min="1" step="1">
-      </div>
-      <div class="field">
         <label for="customs">Customs clearance</label>
         <select id="customs">
           <option value="yes">As the route requires</option>
@@ -151,6 +140,7 @@
       </div>
       <div class="itin" id="itin"></div>
       <div class="rateline" id="rateline"></div>
+      <div class="goods" id="goods"></div>
       <table class="ledger"><tbody id="ledger"></tbody></table>
       <div class="grand">
         <div>
