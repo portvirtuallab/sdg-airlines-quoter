@@ -67,10 +67,33 @@ check("BCN-ALG minimum", E.findRoute(data, "BCN", "ALG").rate.min, 105);
 const sc = E.surchargeLines(data, { km: 2898, chargeableWeight: 500, freight: 1000, customs: true });
 const ets = sc.find(s => s.code === "ETS");
 check("ETS is charged per kilometre", ets.amount, Math.round(2898 * 0.009 * 100) / 100);
-const pss = sc.find(s => s.code === "PSS");
-check("PSS appears on the quotation", pss ? 1 : 0, 1);
-check("PSS is priced at zero", pss.amount, 0);
-console.log(`  ok    PSS is flagged inactive: ${pss.inactive} - "${pss.detail}"`);
+check("the control fee is no longer quoted", sc.filter(s => s.code === "CT").length, 0);
+check("the peak season surcharge is no longer quoted", sc.filter(s => s.code === "PSS").length, 0);
+
+// -- Case 8: dangerous goods, flat to ten pieces then a rate on each further one
+const dgArr = n => E.arrivalQuote(data, {
+  airport: "BCN", chargeableWeight: 500, pieces: n, mawbs: 1,
+  cargoType: "DGR", customs: true, storageDays: 0
+});
+check("DG at 10 pieces is the flat fee", dgArr(10).lines.find(l => l.code === "DGD").amount, 35);
+check("DG at 15 pieces adds 2.50 a piece", dgArr(15).lines.find(l => l.code === "DGD").amount, 47.5);
+const genPieces = E.arrivalQuote(data, {
+  airport: "BCN", chargeableWeight: 500, pieces: 15, mawbs: 1,
+  cargoType: "GEN", customs: true, storageDays: 0
+});
+check("general cargo carries no DG fee", genPieces.lines.filter(l => l.code === "DGD").length, 0);
+
+// -- Case 9: the Incoterm moves the line between the parties, never the total
+const byIncoterm = ["FCA", "CPT", "CIP", "DAP", "DDP"].map(ic => E.fullQuote(data, {
+  origin: "BCN", destination: "CAI", chargeableWeight: 500, grossWeight: 480, pieces: 6,
+  mawbs: 1, cargoType: "GEN", customs: true, storageDays: 0, currency: "EUR", incoterm: ic
+}));
+check("every Incoterm gives the same total", new Set(byIncoterm.map(q => q.total)).size, 1);
+byIncoterm.forEach(q => check(`${q.incoterm}: the two sides sum to the total`,
+  E.round2(q.sellerTotal + q.buyerTotal), q.total));
+check("DDP leaves the buyer nothing", byIncoterm[4].buyerTotal, 0);
+check("FCA leaves the seller only the origin formalities",
+  byIncoterm[0].sellerTotal < byIncoterm[1].sellerTotal ? 1 : 0, 1);
 
 // -- Case 6: the AWB rate line
 const q = E.fullQuote(data, { origin: "BCN", destination: "CAI", chargeableWeight: 500,
