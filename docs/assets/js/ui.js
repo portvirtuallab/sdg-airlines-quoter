@@ -164,6 +164,7 @@
 
   function render(q) {
     LAST = q;
+    $("doc").classList.remove("errored");
 
     if (q.rateLine) {
       var rl = q.rateLine;
@@ -211,7 +212,7 @@
         var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
         return a ? a.utcOffset : 0;
       };
-      var L = root.SDGNetwork.localTime;
+      var L = (root.SDGNetwork || {}).localTime || function (t) { return String(t); };
       $("itin").innerHTML =
         '<div class="itin-cap">Routing \u00b7 ' + q.itinerary.jumps + ' flight(s) \u00b7 ' +
         Math.round(q.itinerary.transitSeconds / 3600) + ' h total \u00b7 ' +
@@ -297,9 +298,9 @@
         ' kg falls into a cheaper band and costs less. The lower figure is quoted.</div>'
       : "";
 
-    var endpoint = (DATA.config.quote || {}).endpoint;
+    var backend = endpoint();
     if ($("send")) {
-      $("send").classList.toggle("on", !!(endpoint && q.itinerary));
+      $("send").classList.toggle("on", !!(backend && q.itinerary));
       $("sendMsg").textContent = "";
       $("sendMsg").className = "send-msg";
       $("sendBtn").disabled = false;
@@ -311,36 +312,83 @@
   }
 
   /* ── email the quotation ─────────────────────────────────────── */
+  /* ── the register ────────────────────────────────────────────────
+     Every calculation is checked against the Port Virtual Lab PIN list
+     and written to the operations register before the document appears.
+     Both live in Apps Script: the codes are in a private sheet the page
+     cannot read, which is the point — a check written in this file would
+     be readable by anyone who opened the page source.
+
+     With no endpoint configured the site runs ungated, so the tools keep
+     working while the backend is being set up.                          */
+  function endpoint() {
+    return ((DATA.config.quote || {}).endpoint || "").trim();
+  }
+
+  function operator() {
+    return {
+      name: ($("opName") || {}).value ? $("opName").value.trim() : "",
+      email: ($("opEmail") || {}).value ? $("opEmail").value.trim() : "",
+      pin: ($("opPin") || {}).value ? $("opPin").value.trim() : ""
+    };
+  }
+
+  function registerOperation(action) {
+    var who = operator();
+    return fetch(endpoint(), {
+      method: "POST",
+      // Apps Script rejects a preflight, so the body goes as plain text.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(Object.assign(payload(), who, { action: action })),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.error || "The request was refused.");
+        return res;
+      });
+  }
+
   function payload() {
     var utc = function (c) {
       var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
       return a ? a.utcOffset : 0;
     };
-    var L = root.SDGNetwork.localTime;
+    var L = (root.SDGNetwork || {}).localTime || function (t) { return String(t); };
     var name = function (c) {
       var a = DATA.airports.filter(function (x) { return x.code === c; })[0];
       return a ? a.name : c;
     };
+    // The arrival page has no route, no rate line and no itinerary, so every
+    // one of those is read defensively: the register takes one row per
+    // operation whichever tool produced it.
     var it = LAST.itinerary;
-    return {
-      pin: $("sendPin").value.trim(),
-      email: $("sendEmail").value.trim(),
+    var rl = LAST.rateLine || {};
+    var body = {
+      tool: MODE === "full" ? "quotation" : "arrival charges",
       reference: LAST.reference,
       issued: new Date().toISOString().slice(0, 10),
       validUntil: LAST.validUntil,
       currency: LAST.currency,
-      origin: LAST.origin, destination: LAST.destination,
-      originName: name(LAST.origin), destinationName: name(LAST.destination),
+      origin: LAST.origin || "", destination: LAST.destination,
+      originName: LAST.origin ? name(LAST.origin) : "",
+      destinationName: name(LAST.destination),
+      incoterm: LAST.incoterm || "",
       commodity: $("cargoType").options[$("cargoType").selectedIndex].textContent,
-      pieces: LAST.rateLine.pieces,
-      grossWeight: LAST.rateLine.grossWeight,
+      pieces: rl.pieces || LAST.pieces || "",
+      grossWeight: rl.grossWeight || "",
       chargeableWeight: LAST.chargeableWeight,
-      regime: LAST.regime,
-      rateLine: LAST.rateLine,
-      departure: LAST.departure,
+      regime: LAST.regime || "",
+      rateLine: LAST.rateLine || null,
+      departure: LAST.departure || null,
       arrival: LAST.arrival,
+      sellerTotal: LAST.sellerTotal == null ? null : LAST.sellerTotal,
+      buyerTotal: LAST.buyerTotal == null ? null : LAST.buyerTotal,
       total: LAST.total,
-      itinerary: {
+      itinerary: null,
+    };
+
+    if (it && it.legs) {
+      body.itinerary = {
         jumps: it.jumps, km: it.km, transitSeconds: it.transitSeconds,
         legs: it.legs.map(function (l) {
           return {
@@ -351,45 +399,41 @@
             arrivalLocal: L(l.arrivalUTC, utc(l.destination)),
           };
         }),
-      },
-    };
+      };
+    }
+    return body;
   }
 
+  /* The PIN and the address were given to produce the quotation, so the send
+     panel asks for neither again \u2014 it just posts the same operation with the
+     email attached. */
   function sendByEmail() {
     var msg = $("sendMsg"), btn = $("sendBtn");
     var show = function (text, cls) { msg.textContent = text; msg.className = "send-msg " + (cls || ""); };
     if (!LAST) return;
-    if (!$("sendPin").value.trim()) return show("Enter your Port Virtual Lab PIN.", "bad");
-    if ($("sendEmail").value.indexOf("@") < 1) return show("Enter a valid email address.", "bad");
 
     btn.disabled = true; btn.textContent = "Sending";
     show("Preparing the quotation\u2026");
 
-    fetch(DATA.config.quote.endpoint, {
-      method: "POST",
-      // Apps Script rejects a preflight, so the body goes as plain text.
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload()),
-    })
-      .then(function (r) { return r.json(); })
+    registerOperation("send")
       .then(function (res) {
-        if (res.ok) {
-          show("Sent to " + res.sentTo + " for " + res.institution + ".", "ok");
-          btn.textContent = "Sent";
-        } else {
-          show(res.error || "The quotation could not be sent.", "bad");
-          btn.disabled = false; btn.textContent = "Send";
-        }
+        show("Sent to " + res.sentTo + ".", "ok");
+        btn.textContent = "Sent";
       })
       .catch(function (err) {
-        show("Could not reach the quotation desk: " + err.message, "bad");
+        show(err.message === "Failed to fetch"
+          ? "Could not reach the quotation desk. Check your connection and try again."
+          : err.message, "bad");
         btn.disabled = false; btn.textContent = "Send";
       });
   }
 
+  /* The alert lives inside the document, so showing it would otherwise leave
+     a refused attempt sitting on top of whatever was quoted last. The sheet
+     is hidden while the message stands. */
   function fail(msg) {
     $("alert").innerHTML = '<div class="alert"><strong>Cannot quote</strong>' + esc(msg) + "</div>";
-    $("doc").classList.add("on");
+    $("doc").classList.add("on", "errored");
     $("doc").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -457,7 +501,30 @@
       };
     }
     if (q.error) return fail(q.error);
-    render(q);
+
+    // Nothing is shown until the PIN clears and the operation is on the
+    // register. LAST has to be set first because the payload is built from it.
+    if (!endpoint()) { render(q); return; }
+
+    var who = operator();
+    if (who.name.length < 2) return fail("Enter your name before rating a shipment.");
+    if (who.email.indexOf("@") < 1) return fail("Enter a valid email address.");
+    if (!who.pin) return fail("Enter your Port Virtual Lab PIN.");
+
+    var btn = $("calc"), label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Checking your PIN";
+    LAST = q;
+
+    registerOperation("verify")
+      .then(function () { render(q); })
+      .catch(function (err) {
+        LAST = null;
+        fail(err.message === "Failed to fetch"
+          ? "Could not reach the Port Virtual Lab register. Check your connection and try again."
+          : err.message);
+      })
+      .then(function () { btn.disabled = false; btn.textContent = label; });
   }
 
   /* ── export ──────────────────────────────────────────────────── */
@@ -495,6 +562,10 @@
       airportOptions($("destination"), "\u2014 select destination \u2014");
       cargoOptions($("cargoType"));
       currencyOptions($("currency"));
+
+      // Asking for a PIN nobody can check would be theatre, so the whole
+      // block stays hidden until the Apps Script endpoint is set.
+      if ($("gate") && !endpoint()) $("gate").style.display = "none";
       if (MODE === "full" && $("incoterm")) {
         incotermOptions($("incoterm"), $("incotermNote"));
       }

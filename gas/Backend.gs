@@ -1,54 +1,70 @@
 /**
  * SDG AIRLINES - quotation backend.
  *
- * Replaces Document Studio. Receives a quotation from the web app, checks the
- * institution PIN, renders a PDF, emails it, and logs the request.
+ * Two jobs. It is the only thing that can read the PIN list, and it is the
+ * only thing that can write to the operations log. Both sheets stay private;
+ * the web page sends a PIN and gets back yes or no, so a student cannot read
+ * the codes out of the page source. That is the whole reason this file exists
+ * rather than the check living in JavaScript.
  *
  * SETUP, once:
- *   1. Create a spreadsheet and put its id in SHEET_ID below.
- *   2. Add a tab named "Institutions" with these headers in row 1:
- *        institution | pin | contact_email | active
- *      One row per school. active = yes/no.
- *   3. Add a tab named "Quotation log" - the headers are written automatically.
+ *   1. Put the two spreadsheet ids below.
+ *      PIN_SHEET_ID  - the sheet holding the codes. Keep it PRIVATE.
+ *      LOG_SHEET_ID  - where operations are recorded. Keep it private too:
+ *                      it will hold students' names and email addresses.
+ *   2. The PIN tab is read as a plain list of codes down column A. A header
+ *      in A1 is ignored if it does not look like a code.
+ *   3. The log tab is created and headed automatically.
  *   4. Deploy > New deployment > Web app
  *        Execute as:  Me
  *        Access:      Anyone
- *      Copy the /exec URL into data/config.json -> quote.endpoint, rebuild,
- *      and push.
+ *      Copy the /exec URL into data/config.json -> quote.endpoint, then push.
  *
- * The PIN list never leaves this script. The web page only ever sends a PIN
- * and gets back yes or no, so a student cannot read the other institutions'
- * codes out of the page source.
+ * Until that URL is set the site simply runs without the gate, so the tools
+ * keep working while this is being wired up.
  */
 
-var SHEET_ID = 'PUT_YOUR_SPREADSHEET_ID_HERE';
-var LOG_TAB = 'Quotation log';
-var PIN_TAB = 'Institutions';
-var LOG_KEEP = 50;          // how many recent quotations to keep on the log tab
+var PIN_SHEET_ID = 'PUT_THE_VERIFICATION_SPREADSHEET_ID_HERE';
+var LOG_SHEET_ID = 'PUT_THE_OPERATIONS_LOG_SPREADSHEET_ID_HERE';
+var PIN_TAB = 'SHEET VERIFICATION';
+var PIN_COLUMN = 1;         // column A
+var LOG_TAB = 'Operations log';
+var LOG_KEEP = 0;           // 0 keeps every row; set a number for a rolling window
 
-/* ── entry point ─────────────────────────────────────────────── */
+/* ── entry point ─────────────────────────────────────────────────
+   action 'verify' - check the PIN and record the operation. No email.
+   action 'send'   - the above, plus the PDF by email.
+   Anything else is treated as 'send', which is what older builds posted. */
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
-    var who = checkPin(body.pin);
-    if (!who) return json({ ok: false, error: 'That PIN is not recognised. Check it with your tutor.' });
+    var action = body.action === 'verify' ? 'verify' : 'send';
+
+    if (!checkPin(body.pin)) {
+      return json({ ok: false, error: 'That PIN is not recognised. Check it with your tutor.' });
+    }
+    if (!body.name || String(body.name).trim().length < 2) {
+      return json({ ok: false, error: 'Enter your name.' });
+    }
     if (!body.email || body.email.indexOf('@') < 1) {
       return json({ ok: false, error: 'Enter a valid email address.' });
     }
 
-    var pdf = renderPdf(body).setName(body.reference + '.pdf');
-    MailApp.sendEmail({
-      to: body.email,
-      subject: 'SDG Airlines - rate quotation ' + body.reference,
-      htmlBody: emailBody(body, who),
-      attachments: [pdf],
-      name: 'SDG Airlines Air Cargo',
-    });
+    if (action === 'send') {
+      var pdf = renderPdf(body).setName(body.reference + '.pdf');
+      MailApp.sendEmail({
+        to: body.email,
+        subject: 'SDG Airlines - rate quotation ' + body.reference,
+        htmlBody: emailBody(body, body.name),
+        attachments: [pdf],
+        name: 'SDG Airlines Air Cargo',
+      });
+    }
 
-    logQuotation(body, who);
-    return json({ ok: true, sentTo: body.email, institution: who });
+    logOperation(body, action);
+    return json({ ok: true, action: action, sentTo: action === 'send' ? body.email : null });
   } catch (err) {
-    return json({ ok: false, error: 'Could not send the quotation: ' + err.message });
+    return json({ ok: false, error: 'The request could not be completed: ' + err.message });
   }
 }
 
@@ -57,30 +73,39 @@ function json(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/* ── PIN check ───────────────────────────────────────────────── */
+/* ── PIN check ───────────────────────────────────────────────────
+   The tab is a plain list of codes down one column. Comparison ignores
+   case and surrounding spaces, because a code copied out of a sheet
+   arrives with both. Returns true or false and nothing else - the page
+   never learns anything about the list it did not already send.        */
 function checkPin(pin) {
-  if (!pin) return null;
-  var sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(PIN_TAB);
-  var rows = sheet.getDataRange().getValues();
-  var head = rows.shift().map(function (h) { return String(h).trim().toLowerCase(); });
-  var iName = head.indexOf('institution'), iPin = head.indexOf('pin'), iOn = head.indexOf('active');
+  if (!pin) return false;
+  var sheet = SpreadsheetApp.openById(PIN_SHEET_ID).getSheetByName(PIN_TAB);
+  if (!sheet) throw new Error('Tab "' + PIN_TAB + '" not found in the verification sheet');
+  var last = sheet.getLastRow();
+  if (last < 1) return false;
+
+  var codes = sheet.getRange(1, PIN_COLUMN, last, 1).getValues();
   var given = String(pin).trim().toUpperCase();
-  for (var i = 0; i < rows.length; i++) {
-    var r = rows[i];
-    if (String(r[iPin]).trim().toUpperCase() !== given) continue;
-    if (iOn > -1 && String(r[iOn]).trim().toLowerCase() === 'no') return null;
-    return String(r[iName]).trim();
+  if (!given) return false;
+
+  for (var i = 0; i < codes.length; i++) {
+    if (String(codes[i][0]).trim().toUpperCase() === given) return true;
   }
-  return null;
+  return false;
 }
 
-/* ── the log: data only, no attachments kept ─────────────────── */
-function logQuotation(q, institution) {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
+/* ── the log: data only, no attachments kept ─────────────────────
+   One row per operation, whether it was a full quotation or an arrival
+   calculation, so the register shows who used the tools and for what.  */
+function logOperation(q, action) {
+  var ss = SpreadsheetApp.openById(LOG_SHEET_ID);
   var sheet = ss.getSheetByName(LOG_TAB) || ss.insertSheet(LOG_TAB);
-  var HEAD = ['requested_at', 'reference', 'institution', 'email', 'origin', 'destination',
-              'commodity', 'pieces', 'gross_kg', 'chargeable_kg', 'flights', 'aircraft',
-              'departure', 'arrival', 'customs_regime', 'currency', 'total'];
+  var HEAD = ['requested_at', 'tool', 'reference', 'name', 'email', 'pin',
+              'origin', 'destination', 'incoterm', 'commodity',
+              'pieces', 'gross_kg', 'chargeable_kg', 'flights', 'aircraft',
+              'departure', 'arrival', 'customs_regime',
+              'currency', 'seller_pays', 'buyer_pays', 'total', 'emailed'];
 
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEAD);
@@ -91,19 +116,25 @@ function logQuotation(q, institution) {
   var it = q.itinerary || {};
   var legs = it.legs || [];
   sheet.appendRow([
-    new Date(), q.reference, institution, q.email,
-    q.origin, q.destination, q.commodity,
+    new Date(), q.tool || 'quotation', q.reference, q.name, q.email, q.pin,
+    q.origin || '', q.destination, q.incoterm || '', q.commodity,
     q.pieces, q.grossWeight, q.chargeableWeight,
     legs.length,
     legs.map(function (l) { return l.aircraft; }).join(' + '),
     legs.length ? legs[0].departureLocal : '',
     legs.length ? legs[legs.length - 1].arrivalLocal : '',
-    q.regime, q.currency, q.total,
+    q.regime || '', q.currency,
+    q.sellerTotal == null ? '' : q.sellerTotal,
+    q.buyerTotal == null ? '' : q.buyerTotal,
+    q.total, action === 'send' ? 'yes' : 'no',
   ]);
 
-  // Keep only the most recent LOG_KEEP rows. Oldest go first.
-  var extra = sheet.getLastRow() - 1 - LOG_KEEP;
-  if (extra > 0) sheet.deleteRows(2, extra);
+  // A rolling window only if one was asked for. Left at 0 the register keeps
+  // everything, which is what a register is for.
+  if (LOG_KEEP > 0) {
+    var extra = sheet.getLastRow() - 1 - LOG_KEEP;
+    if (extra > 0) sheet.deleteRows(2, extra);
+  }
 }
 
 /* ── the PDF ─────────────────────────────────────────────────── */
@@ -170,7 +201,7 @@ function quotationHtml(q) {
       '<span>Quotation</span><b>' + q.reference + '</b>' +
       '<span>Issued</span><b>' + q.issued + '</b>' +
       '<span>Valid until</span><b>' + q.validUntil + '</b>' +
-      '<span>Prepared for</span><b>' + q.institution + '</b></div>' +
+      '<span>Prepared for</span><b>' + q.name + '</b></div>' +
       '<div class="carrier">SDG Airlines</div>' +
       '<div class="kind">Air cargo division &middot; rate quotation</div>' +
       '<div class="lane">' + q.origin + ' <span class="a">&rarr;</span> ' + q.destination + '</div>' +
@@ -234,11 +265,17 @@ function emailBody(q, institution) {
     'offers no real services. Escola Europea &mdash; Intermodal Transport, Port Virtual Lab.</p></div>';
 }
 
-/* ── run this once from the editor to check the setup ────────── */
+/* ── run this once from the editor to check the setup ──────────
+   Reports what it can reach without revealing a single code.        */
 function testSetup() {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  Logger.log('Spreadsheet: ' + ss.getName());
-  Logger.log('Institutions tab: ' + (ss.getSheetByName(PIN_TAB) ? 'found' : 'MISSING'));
-  Logger.log('Log tab: ' + (ss.getSheetByName(LOG_TAB) ? 'found' : 'will be created on first use'));
+  var pinSs = SpreadsheetApp.openById(PIN_SHEET_ID);
+  var pinTab = pinSs.getSheetByName(PIN_TAB);
+  Logger.log('Verification sheet: ' + pinSs.getName());
+  Logger.log('Tab  + PIN_TAB + : ' + (pinTab ? pinTab.getLastRow() + ' row(s) in column A' : 'MISSING'));
+
+  var logSs = SpreadsheetApp.openById(LOG_SHEET_ID);
+  Logger.log('Log sheet: ' + logSs.getName());
+  Logger.log('Tab "' + LOG_TAB + '": ' + (logSs.getSheetByName(LOG_TAB) ? 'found' : 'will be created on first use'));
+  Logger.log('Rows kept: ' + (LOG_KEEP > 0 ? LOG_KEEP + ' most recent' : 'all of them'));
   Logger.log('Email quota left today: ' + MailApp.getRemainingDailyQuota());
 }

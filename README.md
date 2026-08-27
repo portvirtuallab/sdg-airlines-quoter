@@ -313,6 +313,36 @@ a PIN and gets back yes or no, nothing else.
 Leave `endpoint` blank and the email panel simply does not appear, so the site
 still works before the backend is wired up.
 
+## The PIN gate and the operations register
+
+Rating a shipment asks for a name, an email address and a **Port Virtual Lab
+PIN**, on both tools. The PIN is checked before anything is shown: get it
+wrong and the quotation does not appear. Every accepted calculation is written
+to the operations register, so the log answers who used the tools, for what,
+and when.
+
+**The check cannot live in this repository.** A page served by GitHub Pages
+that validated PINs in JavaScript would carry the list in its own source, and
+any student could read it. So `gas/Backend.gs` holds it: the page sends a code
+and gets back yes or no, and the sheet stays private.
+
+Two spreadsheets, both of which should stay private:
+
+```js
+var PIN_SHEET_ID = '…';   // codes down column A of the SHEET VERIFICATION tab
+var LOG_SHEET_ID = '…';   // the register. It will hold names and addresses.
+```
+
+The register keeps every row. Set `LOG_KEEP` to a number if you would rather
+have a rolling window.
+
+**Until the endpoint is set the gate does not appear at all** and both tools
+work exactly as before, so nothing is blocked while this is being wired up.
+Deploy the script as a web app, executing as *Me*, access *Anyone*, and paste
+the `/exec` URL into `config.json → quote.endpoint`.
+
+---
+
 ## The quotation log
 
 Every quotation sent is appended to a `Quotation log` tab: reference, institution,
