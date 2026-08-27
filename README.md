@@ -123,7 +123,18 @@ well in class: 95 kg to Lisbon is rated as 100 kg and the shipment drops from
 **Rate class** — the quote shows the AWB rate class: **M** when the minimum
 charge applies, **N** for a normal rate below 100 kg, **Q** for a quantity rate.
 
-**Surcharges** — fuel (MY) and security (SC) per kilo, set per lane.
+**Surcharges** — emissions by the kilometre, then X-ray screening, the airport
+surcharge and the customs cost as flat figures, all in `surcharges.csv`.
+
+**Dangerous goods** — on top of the higher handling and storage tariffs, a flat
+acceptance fee covering the first ten pieces and a rate on every piece beyond
+them, charged **at both ends**. Twelve pieces is 35.00 + 2 × 2.50 at origin and
+the same again at destination. Priced on pieces rather than weight, because the
+work is the paperwork and the segregation. Set in `config.json →
+dangerous_goods`.
+
+**One air waybill** — every quotation is a single MAWB, so the charges that
+used to be multiplied by the number of waybills are quoted once.
 
 **Storage** — free days first, then days 1–20 at one rate and day 21 onward at
 a higher one, per 100 kg or part thereof, plus the fee per MAWB. All three
@@ -143,23 +154,23 @@ node scripts/test_engine.mjs
 
 ## Incoterms
 
-The quotation asks for an Incoterm — FCA, CPT, CIP or DAP, the four Incoterms
-2020 recommends for air cargo — and then marks every charge with the party that
+The quotation asks for an Incoterm — FCA, CPT, CIP, DAP or DDP, the Incoterms
+2020 recommends for air cargo — and marks every charge with the party that
 bears it, with a subtotal for each side.
 
 **The total never changes.** The same shipment costs the same under every
 Incoterm; what moves is where the line between seller and buyer falls. BCN to
-Lisbon with 95 kg is 635.50 either way, split 42.14 / 593.36 under FCA and
-561.01 / 74.49 under DAP.
+Lisbon with 100 kg is 570.93 throughout, split 42.30 / 528.63 under FCA,
+496.44 / 74.49 under DAP and 570.93 / nothing under DDP.
 
 Who pays what lives in `data/incoterms.csv`, one row per charge and one column
 per Incoterm:
 
 ```csv
-code,label,stage,FCA,CPT,CIP,DAP
-TH,Terminal handling at origin,origin,seller,seller,seller,seller
-WT,Weight charge,origin,buyer,seller,seller,seller
-CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer
+code,label,stage,FCA,CPT,CIP,DAP,DDP
+TH,Terminal handling at origin,origin,seller,seller,seller,seller,seller
+WT,Air freight,origin,buyer,seller,seller,seller,seller
+CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer,seller
 ```
 
 So the allocation is arguable in a spreadsheet rather than buried in
@@ -172,6 +183,11 @@ omitted on-carriage would teach the wrong lesson. They show as *quoted
 separately* and link to the road haulier set in
 `config.json → partners.road_haulier`. Leave the `url` blank and the lines
 still appear, simply without a link.
+
+This matters most under **DDP**, where all three fall to the seller: the duties
+are settled with the customs authority and the final truck is booked with the
+haulier, neither of them by this airline. The quotation says so on the line
+rather than leaving the seller to find out.
 
 **Arrival charges are unaffected.** `arrival.html` takes no Incoterm and looks
 exactly as it always did, so a student who only wants the destination figure
@@ -206,9 +222,8 @@ Quotations use IATA-style codes so the breakdown reads like a real one.
 
 | Code | Charge |
 |---|---|
-| `WT` | Weight charge |
-| `MY` | Fuel surcharge |
-| `SC` | Security surcharge |
+| `WT` | Air freight (weight charge) |
+| `DGO` / `DGD` | Dangerous goods, origin and destination |
 | `AW` | Air waybill fee |
 | `TH` | Terminal handling at origin |
 | `SD` | Security at arrival |

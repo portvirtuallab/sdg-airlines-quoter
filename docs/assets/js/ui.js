@@ -403,7 +403,7 @@
       chargeableWeight: w.chargeable,
       grossWeight: w.gross,
       pieces: w.pieces,
-      mawbs: parseInt($("mawbs").value, 10) || 1,
+      mawbs: 1,
       cargoType: $("cargoType").value,
       customs: $("customs").value === "yes",
       storageDays: parseInt($("storageDays").value, 10) || 0,
@@ -439,7 +439,7 @@
     } else {
       var a = E().arrivalQuote(DATA, {
         airport: input.destination, chargeableWeight: input.chargeableWeight,
-        mawbs: input.mawbs, cargoType: input.cargoType, customs: input.customs,
+        pieces: input.pieces, mawbs: 1, cargoType: input.cargoType, customs: input.customs,
         storageDays: input.storageDays
       });
       if (a.error) return fail(a.error);

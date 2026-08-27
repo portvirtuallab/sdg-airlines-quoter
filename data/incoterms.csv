@@ -1,20 +1,20 @@
-code,label,stage,FCA,CPT,CIP,DAP
-PRE,Pre-carriage to the airport of departure,info_origin,seller,seller,seller,seller
-CC,Export customs formalities,origin,seller,seller,seller,seller
-TH,Terminal handling at origin,origin,seller,seller,seller,seller
-AW,Air waybill fee,origin,buyer,seller,seller,seller
-WT,Weight charge,origin,buyer,seller,seller,seller
-ETS,Emissions trading scheme,origin,buyer,seller,seller,seller
-XR,X-ray screening,origin,buyer,seller,seller,seller
-AP,Airport surcharge,origin,buyer,seller,seller,seller
-CT,Control fee,origin,buyer,seller,seller,seller
-PSS,Peak season surcharge,origin,buyer,seller,seller,seller
-INS,Cargo insurance,origin,none,none,seller,none
-SD,Security at arrival,arrival,buyer,buyer,buyer,seller
-TD,Terminal handling at destination,arrival,buyer,buyer,buyer,seller
-LB,Truck loading at destination - loose cargo,arrival,buyer,buyer,buyer,seller
-CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer
-DB,Import documentation handling,arrival,buyer,buyer,buyer,buyer
-ST,Storage at destination,arrival,buyer,buyer,buyer,buyer
-ONC,On-carriage from the airport of destination,info_arrival,buyer,buyer,buyer,seller
-DUT,Import duties and taxes,info_arrival,buyer,buyer,buyer,buyer
+code,label,stage,FCA,CPT,CIP,DAP,DDP
+PRE,Pre-carriage to the airport of departure,info_origin,seller,seller,seller,seller,seller
+CC,Export customs formalities,origin,seller,seller,seller,seller,seller
+TH,Terminal handling at origin,origin,seller,seller,seller,seller,seller
+DGO,Dangerous goods acceptance at origin,origin,seller,seller,seller,seller,seller
+AW,Air waybill fee,origin,buyer,seller,seller,seller,seller
+WT,Air freight,origin,buyer,seller,seller,seller,seller
+ETS,Emissions trading scheme,origin,buyer,seller,seller,seller,seller
+XR,X-ray screening,origin,buyer,seller,seller,seller,seller
+AP,Airport surcharge,origin,buyer,seller,seller,seller,seller
+INS,Cargo insurance,origin,none,none,seller,none,none
+SD,Security at arrival,arrival,buyer,buyer,buyer,seller,seller
+TD,Terminal handling at destination,arrival,buyer,buyer,buyer,seller,seller
+DGD,Dangerous goods handling at destination,arrival,buyer,buyer,buyer,seller,seller
+LB,Truck loading at destination - loose cargo,arrival,buyer,buyer,buyer,seller,seller
+CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer,seller
+DB,Import documentation handling,arrival,buyer,buyer,buyer,buyer,seller
+ST,Storage at destination,arrival,buyer,buyer,buyer,buyer,buyer
+ONC,On-carriage from the airport of destination,info_arrival,buyer,buyer,buyer,seller,seller
+DUT,Import duties and taxes,info_arrival,buyer,buyer,buyer,buyer,seller

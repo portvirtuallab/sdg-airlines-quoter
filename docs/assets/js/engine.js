@@ -99,7 +99,7 @@
     lines.push({
       code: "WT",
       due: "C",
-      label: "Weight charge",
+      label: "Air freight (weight charge)",
       detail: found.source + " \u00b7 " + fr.band + " at " + fr.perKg.toFixed(3) + "/kg" +
         (fr.weightBreak ? " \u00b7 rated at " + fr.billedWeight + " kg on the weight break" : "") +
         (fr.minApplied ? " \u00b7 minimum charge applied" : ""),
@@ -125,11 +125,14 @@
       });
     }
 
+    var dgo = dangerousGoodsLine(data, input.cargoType, input.pieces, "origin");
+    if (dgo) lines.push(dgo);
+
     lines.push({
       code: "AW",
       due: "A",
       label: "Air waybill fee",
-      detail: mawbs + " master air waybill(s) issued",
+      detail: "one master air waybill issued",
       amount: round2(25 * mawbs)
     });
 
@@ -265,6 +268,35 @@
     };
   }
 
+  /* ── Dangerous goods ────────────────────────────────────────
+     A flat acceptance fee covering the first few pieces, then a rate on
+     every piece beyond them. Priced on pieces, not weight, because the
+     work is the paperwork and the segregation, not the tonnage. Charged
+     at both ends, so a small shipment carries it twice.               */
+  function dangerousGoodsLine(data, cargoType, pieces, where) {
+    var dg = data.config.dangerous_goods;
+    if (!dg || cargoType !== dg.cargo_type) return null;
+    if (where === "origin" && !dg.at_origin) return null;
+    if (where === "destination" && !dg.at_destination) return null;
+
+    var n = Math.max(1, Number(pieces) || 1);
+    var free = Number(dg.included_pieces) || 0;
+    var extra = Math.max(0, n - free);
+    var amount = Number(dg.base) || 0;
+    if (extra) amount += extra * (Number(dg.per_extra_piece) || 0);
+
+    return {
+      code: where === "origin" ? "DGO" : "DGD",
+      due: "C",
+      label: "Dangerous goods " + (where === "origin" ? "acceptance at origin" : "handling at destination"),
+      detail: extra
+        ? (Number(dg.base)).toFixed(2) + " up to " + free + " pieces + " +
+          (Number(dg.per_extra_piece)).toFixed(2) + " × " + extra + " further piece(s)"
+        : (Number(dg.base)).toFixed(2) + " for " + n + " piece(s), within the first " + free,
+      amount: round2(amount)
+    };
+  }
+
   function thcFamily(data, cargoTypeId) {
     var t = (data.config.cargo_types || []).filter(function (c) { return c.id === cargoTypeId; })[0];
     return t ? t.thc : "gen";
@@ -332,6 +364,9 @@
       amount: round2(Math.max(t["thc_" + fam + "_min"], t["thc_" + fam + "_rate"] * cw))
     });
 
+    var dgd = dangerousGoodsLine(data, input.cargoType, input.pieces, "destination");
+    if (dgd) lines.push(dgd);
+
     if (input.storageDays > 0) {
       var st = storage(data, t, input, cw, mawbs);
       lines.push(st);
@@ -385,6 +420,7 @@
     var arr = arrivalQuote(data, {
       airport: input.destination,
       chargeableWeight: dep.chargeableWeight,
+      pieces: input.pieces,
       mawbs: input.mawbs,
       cargoType: input.cargoType,
       customs: input.customs,

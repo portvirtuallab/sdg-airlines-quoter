@@ -83,8 +83,23 @@
         "label": "DAP — Delivered At Place",
         "place": "the buyer's premises",
         "note": "The seller bears every cost to the named place except import clearance, duties and taxes."
+      },
+      {
+        "id": "DDP",
+        "label": "DDP — Delivered Duty Paid",
+        "place": "the buyer's premises, duty paid",
+        "note": "The seller bears everything, import duties and taxes included. Neither the duties nor the final delivery by road are quoted here: both are arranged separately, the duties with the customs authority and the truck with the road haulier."
       }
     ]
+  },
+  "dangerous_goods": {
+    "cargo_type": "DGR",
+    "base": 35,
+    "included_pieces": 10,
+    "per_extra_piece": 2.5,
+    "at_origin": true,
+    "at_destination": true,
+    "note": "Charged at both ends, so a dangerous goods shipment of up to ten pieces carries 70.00 in total. Priced on the number of pieces, not on weight."
   },
   "insurance": {
     "pct_of_insured_value": 0,
