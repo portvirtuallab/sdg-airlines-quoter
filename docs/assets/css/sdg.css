@@ -355,6 +355,63 @@ a.c-name.out::after{content:'\2197';font-size:11px;margin-left:3px;text-decorati
 }
 .goods-q{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-3)}
 
+/* ── glossary ────────────────────────────────────────────────── */
+.gl-tools{display:flex;align-items:flex-start;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.gl-lede{flex:1;min-width:260px;color:var(--ink-2);font-size:15.5px;max-width:62ch}
+.gl-tools .tool{flex:none;border-color:var(--line-2);background:var(--card);color:var(--ink-2)}
+.gl{padding:6px 26px 24px}
+.gl dt{
+  font-size:15.5px;font-weight:600;margin-top:20px;display:flex;align-items:baseline;
+  gap:10px;flex-wrap:wrap;
+}
+.gl dt:first-of-type{margin-top:8px}
+.gl-x{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.02em;
+  background:var(--sky-wash);color:var(--blue-deep);border-radius:5px;padding:2px 8px;
+}
+.gl dd{color:var(--ink-2);font-size:14.5px;margin-top:5px;max-width:74ch}
+.gl dd code{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--wash);
+  padding:1px 5px;border-radius:4px;color:var(--ink)}
+.gl-c{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  background:var(--wash);color:var(--ink-2);border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;margin:0 1px;
+}
+.facts{list-style:none;counter-reset:f;padding:8px 26px 24px}
+.facts li{
+  counter-increment:f;position:relative;padding:16px 0 16px 46px;border-top:1px solid var(--line);
+}
+.facts li:first-child{border-top:none}
+.facts li::before{
+  content:counter(f,decimal-leading-zero);position:absolute;left:0;top:17px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--blue);
+}
+.facts p{font-size:14.5px;color:var(--ink-2);max-width:74ch}
+.facts strong{color:var(--ink);font-weight:600}
+.facts cite{
+  display:block;margin-top:7px;font-style:normal;font-size:12.5px;color:var(--ink-3);
+}
+.facts cite a{color:var(--blue-deep);text-decoration:underline;
+  text-decoration-color:var(--sky-line);text-underline-offset:2px}
+.facts cite a:hover{text-decoration-color:var(--blue)}
+.gl-foot{font-size:12.5px;color:var(--ink-3);max-width:74ch;margin-top:6px}
+
+/* ── secondary desks on the lobby ────────────────────────────── */
+.desks-2{
+  display:grid;grid-template-columns:1fr 1fr;gap:22px;
+  max-width:var(--shell);margin:22px auto 0;padding:0 28px;
+}
+.desk-s{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 24px;
+  display:flex;flex-direction:column;gap:6px;transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.desk-s:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:var(--shadow)}
+.desk-s-n{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--blue)}
+.desk-s-t{font-family:'Archivo',system-ui,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.025em}
+.desk-s-x{font-size:13.5px;color:var(--ink-2);line-height:1.6;flex:1}
+.desk-s-f{margin-top:8px;font-size:13px;font-weight:600;color:var(--blue)}
+.desk-s-f .ext::after{content:'\2197';margin-left:4px;font-weight:400}
+
 /* ── responsive ──────────────────────────────────────────────── */
 @media(max-width:900px){
   .carrier-in,.masthead-in,.shell,.desks,.foot-in{padding-left:18px;padding-right:18px}
@@ -372,7 +429,9 @@ a.c-name.out::after{content:'\2197';font-size:11px;margin-left:3px;text-decorati
   .line>div:nth-child(6){grid-column:1/-1}
   .tally-pad{width:100%;padding-right:14px}
   .tally-pad .add{width:100%}
-  .desks{grid-template-columns:1fr}
+  .desks,.desks-2{grid-template-columns:1fr}
+  .desks-2{padding-left:18px;padding-right:18px}
+  .gl,.facts{padding-left:20px;padding-right:20px}
   .mapwrap{padding-left:18px;padding-right:18px}
   .mapfig svg{min-height:170px}
   .map-stn text{display:none}

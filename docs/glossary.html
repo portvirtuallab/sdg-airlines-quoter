@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDG Airlines — Glossary and air cargo facts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,300..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/sdg.css">
+</head>
+<body>
+
+<header class="carrier">
+  <div class="carrier-in">
+    <a class="mark" href="index.html"><span class="prefix">083</span>SDG Airlines</a>
+    <span class="carrier-role">Air cargo</span>
+    <span class="carrier-end">
+      <span class="flag">Escola Europea</span>
+      <span class="flag sim">Simulation</span>
+    </span>
+  </div>
+</header>
+
+<div class="masthead">
+  <div class="masthead-in">
+    <div class="masthead-txt">
+      <div class="eyebrow">Reference &middot; air cargo division</div>
+      <h1 class="headline">Glossary<span class="thin">and facts</span></h1>
+    </div>
+    <div class="strip">
+      <div class="strip-cell"><span class="strip-k">Terms</span><span class="strip-v" id="n-terms">—</span></div>
+      <div class="strip-cell"><span class="strip-k">Facts</span><span class="strip-v">10</span></div>
+      <div class="strip-cell"><span class="strip-k">Sources</span><span class="strip-v ok">Cited</span></div>
+    </div>
+  </div>
+</div>
+
+<main class="shell">
+
+  <div class="gl-tools">
+    <p class="gl-lede">Every term the simulation puts on screen, and ten things about the real
+    industry that are worth knowing. Print it or save it as a PDF to keep.</p>
+    <button class="tool" id="print" type="button">Print / save as PDF</button>
+  </div>
+
+  <section class="box">
+    <div class="box-head"><span class="box-n">1</span><span class="box-t">Weight and measurement</span></div>
+    <dl class="gl">
+      <dt>Gross weight<span class="gl-x">actual</span></dt>
+      <dd>What the consignment really weighs on the scale, in kilos.</dd>
+
+      <dt>Volumetric weight<span class="gl-x">dimensional</span></dt>
+      <dd>What the consignment weighs <em>for charging purposes</em> given the space it occupies:
+      length &times; width &times; height in centimetres, divided by a million, times the factor.
+      A box of feathers pays for the room it takes, not for its scale weight.</dd>
+
+      <dt>Volumetric factor<span class="gl-x">167 kg/m&sup3;</span></dt>
+      <dd>The conversion IATA sets between volume and chargeable kilos: 167 kilos per cubic metre,
+      the same thing as the older 6,000 cm&sup3; per kilo.</dd>
+
+      <dt>Chargeable weight</dt>
+      <dd>The greater of gross and volumetric, rounded up to the next half kilo. Almost every
+      charge on the quotation is calculated on this figure, not on the real weight.</dd>
+
+      <dt>Rate band</dt>
+      <dd>Air freight is priced in steps by weight: under 100 kg, 100&ndash;299, 300&ndash;499, and
+      500 and over. The price per kilo falls as the shipment gets heavier.</dd>
+
+      <dt>Minimum charge</dt>
+      <dd>The floor below which a shipment cannot be quoted, however light it is. A 3 kg parcel to
+      Lisbon rates 28.35 by the kilo but is billed at the 45.00 minimum.</dd>
+
+      <dt>Weight break<span class="gl-x">key concept</span></dt>
+      <dd>When declaring a <em>heavier</em> weight costs less, because it falls into a cheaper
+      band. 95 kg to Lisbon rates 897.75 in its own band, but rated as 100 kg it costs 300.00.
+      The engine spots this and quotes the lower figure. Standard industry practice, not a trick.</dd>
+
+      <dt>Rate class<span class="gl-x">M &middot; N &middot; Q</span></dt>
+      <dd>The letter on the air waybill saying how the shipment was priced. <strong>M</strong> when
+      the minimum charge applies, <strong>N</strong> for a normal rate under 100 kg,
+      <strong>Q</strong> for a quantity rate at 100 kg or more.</dd>
+    </dl>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><span class="box-n">2</span><span class="box-t">Documents and codes</span></div>
+    <dl class="gl">
+      <dt>Air waybill<span class="gl-x">AWB</span></dt>
+      <dd>The contract of carriage between shipper and airline, and the receipt for the goods.
+      Unlike a sea bill of lading it is <strong>not negotiable</strong>: it does not represent
+      title to the goods and cannot be traded or endorsed to a third party.</dd>
+
+      <dt>Master air waybill<span class="gl-x">MAWB</span></dt>
+      <dd>The waybill the airline issues to the forwarder for the whole consignment. Every
+      quotation in this simulation is a single MAWB.</dd>
+
+      <dt>Airline prefix<span class="gl-x">083</span></dt>
+      <dd>The three digits that open every air waybill number and identify the carrier. The number
+      then runs <code>083&nbsp;-&nbsp;1234&nbsp;5678</code>, and that last digit is a check digit:
+      the remainder of dividing the seven preceding digits by seven.</dd>
+
+      <dt>HS code<span class="gl-x">customs</span></dt>
+      <dd>Harmonised System code, the international classification of goods. Six digits agreed
+      worldwide, extended nationally. Customs rates the duty on this, so it belongs on the
+      consignment line.</dd>
+
+      <dt>Charge codes</dt>
+      <dd>The abbreviations on the breakdown, so the quotation reads like a real one:
+      <span class="gl-c">WT</span> air freight,
+      <span class="gl-c">ETS</span> emissions,
+      <span class="gl-c">XR</span> screening,
+      <span class="gl-c">AP</span> airport,
+      <span class="gl-c">CC</span> export customs,
+      <span class="gl-c">AW</span> waybill fee,
+      <span class="gl-c">TH</span> handling at origin,
+      <span class="gl-c">DGO</span> and <span class="gl-c">DGD</span> dangerous goods,
+      <span class="gl-c">SD</span> security on arrival,
+      <span class="gl-c">CH</span> import clearance,
+      <span class="gl-c">DB</span> import documents,
+      <span class="gl-c">LB</span> truck loading,
+      <span class="gl-c">TD</span> handling at destination,
+      <span class="gl-c">ST</span> storage.</dd>
+    </dl>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><span class="box-n">3</span><span class="box-t">The cargo itself</span></div>
+    <dl class="gl">
+      <dt>Loose cargo<span class="gl-x">bulk</span></dt>
+      <dd>Cargo loaded piece by piece rather than in a container. SDG Airlines carries loose cargo
+      only.</dd>
+
+      <dt>ULD<span class="gl-x">not offered here</span></dt>
+      <dd>Unit Load Device: the containers and pallets built to the curve of an aircraft hold.
+      Faster to load, but they have to be positioned, tracked and returned.</dd>
+
+      <dt>Dangerous goods<span class="gl-x">DGR</span></dt>
+      <dd>Anything classified as hazardous in transport &mdash; batteries, aerosols, chemicals.
+      Needs a shipper's declaration, trained staff and segregation in the warehouse, so it carries
+      a higher handling tariff <em>and</em> an acceptance fee at each end.</dd>
+
+      <dt>Cool chamber</dt>
+      <dd>Temperature-controlled storage for pharmaceuticals and perishables. The most expensive
+      storage tariff and the fewest free days, because the room is scarce and costly to run.</dd>
+
+      <dt>Free days</dt>
+      <dd>The grace period before storage starts being charged: five days for general cargo, four
+      for cool chamber, six for dangerous goods.</dd>
+    </dl>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><span class="box-n">4</span><span class="box-t">Trade terms and the network</span></div>
+    <dl class="gl">
+      <dt>Incoterms 2020</dt>
+      <dd>The ICC rules that say where the seller's costs and risk end and the buyer's begin. They
+      do not change what a shipment costs &mdash; only who pays which part of it.</dd>
+
+      <dt>FCA<span class="gl-x">Free Carrier</span></dt>
+      <dd>The seller delivers the goods cleared for export to the carrier. The buyer contracts and
+      pays the air carriage and everything after it.</dd>
+
+      <dt>CPT and CIP</dt>
+      <dd>Carriage Paid To, and the same with insurance added. The seller pays the flight to the
+      destination airport; the buyer takes the charges waiting there. Risk still passes at
+      origin, which is what surprises people.</dd>
+
+      <dt>DAP<span class="gl-x">Delivered At Place</span></dt>
+      <dd>The seller carries the cost all the way to the buyer's premises, but the buyer clears
+      the import and pays the duty.</dd>
+
+      <dt>DDP<span class="gl-x">Delivered Duty Paid</span></dt>
+      <dd>The seller bears everything, duties and taxes included. The heaviest obligation of the
+      eleven Incoterms.</dd>
+
+      <dt>Schengen and WCO</dt>
+      <dd>Inside the Schengen area there is no customs frontier, so clearance, the customs cost
+      and the import paperwork simply do not arise. Elsewhere the WCO framework applies and they
+      do.</dd>
+
+      <dt>Rotation, leg and hub</dt>
+      <dd>A <strong>leg</strong> is one flight between two stations. A <strong>rotation</strong>
+      is the closed loop an aircraft flies before starting again. A <strong>hub</strong> is the
+      station a service is built around.</dd>
+
+      <dt>SDR<span class="gl-x">Special Drawing Right</span></dt>
+      <dd>The IMF's unit of account, used to express carrier liability so the figure does not
+      depend on any one currency.</dd>
+    </dl>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><span class="box-n">5</span><span class="box-t">Ten things about the real industry</span></div>
+    <ol class="facts">
+      <li>
+        <p>Air cargo moves <strong>less than 1% of world trade by volume but more than a third of
+        it by value</strong> &mdash; around 8.3 trillion dollars of goods a year, some 22.7 billion
+        every day, on roughly 62 million tonnes.</p>
+        <cite>IATA, <a href="https://www.iata.org/en/programs/cargo/sustainability/benefits/" target="_blank" rel="noopener">Value of Air Cargo</a></cite>
+      </li>
+      <li>
+        <p>If an airline loses or damages your cargo, its liability is capped by weight, not by
+        what the goods were worth. The ceiling rose to <strong>26 SDR per kilogram on 28 December
+        2024</strong>, about 35 US dollars, and is reviewed every five years. Declare a higher
+        value or insure the shipment, or a pallet of microchips is worth the same as a pallet of
+        bricks.</p>
+        <cite>ICAO / Montreal Convention 1999, <a href="https://www.icao.int/news/international-air-travel-liability-limits-set-increase-enhancing-customer-compensation-0" target="_blank" rel="noopener">liability limit revision</a></cite>
+      </li>
+      <li>
+        <p>The <strong>air waybill is not negotiable</strong>. A sea bill of lading can be endorsed
+        and traded while the ship is at sea &mdash; the document <em>is</em> the goods. An air
+        waybill is only a contract and a receipt, which is why air shipments are usually paid for
+        differently.</p>
+        <cite>Montreal Convention 1999, Articles 4&ndash;11</cite>
+      </li>
+      <li>
+        <p>The last digit of every air waybill number is a <strong>check digit</strong>: divide the
+        seven-digit serial by seven and the remainder is that digit. It exists so a number
+        mistyped down a phone line fails immediately instead of misrouting a shipment.</p>
+        <cite>IATA Cargo Services Conference, resolution on AWB numbering</cite>
+      </li>
+      <li>
+        <p>The volumetric divisor is <strong>a convention, not physics</strong>. Air freight uses
+        6,000 cm&sup3; per kilo, or 167 kg/m&sup3;; road and express operators commonly use 5,000
+        or 4,000, which is why the same box can have three different chargeable weights depending
+        on how it travels.</p>
+        <cite>IATA TACT Rules</cite>
+      </li>
+      <li>
+        <p>A large share of the world's air cargo never flies on a freighter: it rides in the
+        <strong>belly holds of passenger aircraft</strong>. When passenger flying stopped in 2020
+        that capacity vanished overnight and rates went up sharply, even though there was no
+        shortage of aircraft.</p>
+        <cite>IATA, <a href="https://www.iata.org/en/programs/cargo/" target="_blank" rel="noopener">Cargo programme</a></cite>
+      </li>
+      <li>
+        <p>The dangerous goods rules are <strong>reissued every year</strong>. An edition of the
+        IATA DGR manual is valid for one calendar year, and shipping to last year's edition is a
+        rejection at acceptance, not a warning.</p>
+        <cite>IATA Dangerous Goods Regulations, annual edition</cite>
+      </li>
+      <li>
+        <p>Rating a shipment as <strong>heavier than it is</strong> to pay less is legitimate and
+        expected. The weight break is written into the tariff structure; a forwarder who does not
+        apply it is simply overcharging the customer.</p>
+        <cite>IATA TACT Rules, quantity rates</cite>
+      </li>
+      <li>
+        <p>Four Incoterms &mdash; <strong>FAS, FOB, CFR and CIF</strong> &mdash; are for sea and
+        inland waterway only. They are used on air shipments constantly anyway, and every time it
+        happens the contract says something the parties did not mean, because they refer to goods
+        crossing a ship's rail.</p>
+        <cite>ICC, Incoterms&reg; 2020</cite>
+      </li>
+      <li>
+        <p>Airport codes come in two flavours. <strong>IATA</strong> codes are three letters and
+        commercial &mdash; BCN, LIS. <strong>ICAO</strong> codes are four letters and operational,
+        and their first letters encode the region: LE for mainland Spain, LP for Portugal, so
+        Barcelona is LEBL and Lisbon LPPT.</p>
+        <cite>ICAO Doc 7910, Location Indicators</cite>
+      </li>
+    </ol>
+  </section>
+
+  <p class="gl-foot">Figures are those published at the time of writing and are reviewed
+  periodically by the bodies cited &mdash; check the source before quoting them. The tariffs
+  inside the simulation are invented; everything on this page is not.</p>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <span>SDG Airlines &middot; Air Cargo Division</span>
+    <span>Escola Europea &mdash; Intermodal Transport &middot; Port Virtual Lab</span>
+    <span>Training simulation &middot; not for commercial use</span>
+  </div>
+</footer>
+
+<script>
+document.getElementById('print').onclick = function () { window.print(); };
+document.getElementById('n-terms').textContent =
+  document.querySelectorAll('.gl dt').length + ' terms';
+</script>
+</body>
+</html>
