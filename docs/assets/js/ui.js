@@ -563,9 +563,19 @@
       cargoOptions($("cargoType"));
       currencyOptions($("currency"));
 
-      // Asking for a PIN nobody can check would be theatre, so the whole
-      // block stays hidden until the Apps Script endpoint is set.
-      if ($("gate") && !endpoint()) $("gate").style.display = "none";
+      // Asking for a PIN nobody can check would be theatre, so the whole block
+      // stays hidden until the Apps Script endpoint is set. ?gate=preview shows
+      // it anyway, labelled as inert, so the layout can be reviewed before the
+      // backend exists.
+      if ($("gate") && !endpoint()) {
+        if (new URLSearchParams(location.search).get("gate") === "preview") {
+          $("gate").classList.add("dormant");
+          $("gate").querySelector(".box-note").textContent =
+            "Preview — the backend is not connected, so this PIN is not being checked";
+        } else {
+          $("gate").style.display = "none";
+        }
+      }
       if (MODE === "full" && $("incoterm")) {
         incotermOptions($("incoterm"), $("incotermNote"));
       }
