@@ -14,7 +14,7 @@ TD,Terminal handling at destination,arrival,buyer,buyer,buyer,seller,seller
 DGD,Dangerous goods handling at destination,arrival,buyer,buyer,buyer,seller,seller
 LB,Truck loading at destination - loose cargo,arrival,buyer,buyer,buyer,seller,seller
 CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer,seller
-DB,Import documentation handling,arrival,buyer,buyer,buyer,buyer,seller
+DB,Import documentation handling,arrival,buyer,buyer,buyer,seller,seller
 ST,Storage at destination,arrival,buyer,buyer,buyer,buyer,buyer
 ONC,On-carriage from the airport of destination,info_arrival,buyer,buyer,buyer,seller,seller
 DUT,Import duties and taxes,info_arrival,buyer,buyer,buyer,buyer,seller
