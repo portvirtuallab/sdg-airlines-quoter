@@ -318,7 +318,7 @@ a{color:inherit;text-decoration:none}
 .who.buyer{background:var(--go-wash);color:var(--go)}
 .ledger tr.info td{background:var(--wash)}
 .ledger tr.info .c-name{font-weight:400;color:var(--ink-2)}
-.amt.none{font-family:inherit;font-size:12.5px;color:var(--ink-3);font-style:italic}
+.amt.none{font-family:inherit;font-size:11.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--gold);font-style:normal;white-space:nowrap}
 a.c-name.out{color:var(--blue-deep);text-decoration:underline;text-decoration-color:var(--sky-line);
   text-underline-offset:2px}
 a.c-name.out:hover{text-decoration-color:var(--blue)}

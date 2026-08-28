@@ -194,6 +194,22 @@
         amount = s.amount * ctx.freight;
         basis = (s.amount * 100).toFixed(1) + "% of the weight charge";
       }
+      // A surcharge can carry a floor of its own, the way the freight rate
+      // and the station charges do. Screening is the case that needs it: the
+      // work of putting a shipment through the machine barely varies with
+      // its size, so a small consignment still pays the minimum.
+      var min = Number(s.minimum) || 0;
+      if (min > amount) {
+        // On a flat charge the floor simply replaces it, and saying "greater
+        // of 54.00 or a flat 13.00" would only puzzle the reader.
+        basis = s.basis === "flat"
+          ? "minimum charge per shipment"
+          : "minimum charge — " + basis + " comes to less";
+        amount = min;
+      } else if (min > 0) {
+        basis = basis + " · above the " + min.toFixed(2) + " minimum";
+      }
+
       return {
         code: s.code, due: "C", label: s.label,
         detail: off ? (s.applies === "disabled" ? "not in force for this shipment"
@@ -242,8 +258,8 @@
         return {
           code: r.code, due: "X", label: r.label, party: party,
           detail: road
-            ? "not sold by the airline · quoted by " + (hauler.name || "the road haulier")
-            : "payable to the customs authority on import · not quoted here",
+            ? "Not part of this quotation — the airline does not sell road transport. Arrange it with " + (hauler.name || "the road haulier") + "."
+            : "Not part of this quotation — duties and taxes are settled directly with the customs authority of the importing country.",
           href: road ? (hauler.url || "") : "",
           amount: 0, info: true
         };

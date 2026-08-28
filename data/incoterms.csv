@@ -1,8 +1,8 @@
 code,label,stage,FCA,CPT,CIP,DAP,DDP
 PRE,Pre-carriage to the airport of departure,info_origin,seller,seller,seller,seller,seller
 CC,Export customs formalities,origin,seller,seller,seller,seller,seller
-TH,Terminal handling at origin,origin,seller,seller,seller,seller,seller
-DGO,Dangerous goods acceptance at origin,origin,seller,seller,seller,seller,seller
+TH,Terminal handling at origin,origin,buyer,seller,seller,seller,seller
+DGO,Dangerous goods acceptance at origin,origin,buyer,seller,seller,seller,seller
 AW,Air waybill fee,origin,buyer,seller,seller,seller,seller
 WT,Air freight,origin,buyer,seller,seller,seller,seller
 ETS,Emissions trading scheme,origin,buyer,seller,seller,seller,seller

@@ -230,6 +230,7 @@ Quotations use IATA-style codes so the breakdown reads like a real one.
 | `CH` | Customs clearance formalities |
 | `DB` | Import documentation handling |
 | `LB` | Truck loading, loose cargo |
+| `XR` | X-ray screening |
 | `TD` | Terminal handling at destination |
 | `ST` | Storage |
 

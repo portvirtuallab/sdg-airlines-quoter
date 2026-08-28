@@ -153,7 +153,7 @@
         esc(l.label) + '</a>'
       : '<span class="c-name">' + esc(l.label) + '</span>';
     var value = l.info
-      ? '<span class="amt none">quoted separately</span>'
+      ? '<span class="amt none">Not included</span>'
       : '<span class="amt">' + money(l.amount) + '</span>';
     var cls = [l.inactive ? "off" : "", l.info ? "info" : ""].join(" ").trim();
     return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td><span class="c-code">' + esc(l.code) + '</span>' +

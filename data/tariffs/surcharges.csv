@@ -1,5 +1,5 @@
-code,label,basis,amount,applies,note
-ETS,Emissions trading scheme,per_km,0.009,always,derived from 223 historical quotations
-XR,X-ray screening,flat,13,always,
-AP,Airport surcharge,flat,20,always,
-CC,Customs cost,flat,39,customs_required,
+code,label,basis,amount,minimum,applies,note
+ETS,Emissions trading scheme,per_km,0.009,0,always,derived from 223 historical quotations
+XR,X-ray screening,flat,13,54,always,
+AP,Airport surcharge,flat,20,0,always,
+CC,Customs cost,flat,39,0,customs_required,

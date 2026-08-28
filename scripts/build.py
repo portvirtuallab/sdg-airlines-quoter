@@ -196,6 +196,7 @@ def build():
         surcharges.append({
             "code": (r.get("code") or "").strip(), "label": (r.get("label") or "").strip(),
             "basis": basis, "amount": num(r, "amount", where),
+            "minimum": num(r, "minimum", where),
             "applies": (r.get("applies") or "always").strip(),
             "note": (r.get("note") or "").strip(),
         })
