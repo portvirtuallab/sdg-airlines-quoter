@@ -124,7 +124,9 @@ well in class: 95 kg to Lisbon is rated as 100 kg and the shipment drops from
 charge applies, **N** for a normal rate below 100 kg, **Q** for a quantity rate.
 
 **Surcharges** — emissions by the kilometre, then X-ray screening, the airport
-surcharge and the customs cost as flat figures, all in `surcharges.csv`.
+surcharge and the customs cost as flat figures, all in `surcharges.csv`. Each
+can carry a `minimum`: screening is floored at 54.00, because putting a
+shipment through the machine costs much the same whatever its size.
 
 **Dangerous goods** — on top of the higher handling and storage tariffs, a flat
 acceptance fee covering the first ten pieces and a rate on every piece beyond
@@ -160,15 +162,20 @@ bears it, with a subtotal for each side.
 
 **The total never changes.** The same shipment costs the same under every
 Incoterm; what moves is where the line between seller and buyer falls. BCN to
-Lisbon with 100 kg is 570.93 throughout, split 42.30 / 528.63 under FCA,
-496.44 / 74.49 under DAP and 570.93 / nothing under DDP.
+Lisbon with 100 kg is 611.93 throughout, split 39.00 / 572.93 under FCA,
+537.44 / 74.49 under DAP and 611.93 / nothing under DDP.
+
+Under **FCA** the buyer contracts the carriage, so everything the carrier
+raises at origin — terminal handling and dangerous goods acceptance included —
+is the buyer's. The seller is left with the export formalities and getting the
+cargo to the airport, which is what the term says.
 
 Who pays what lives in `data/incoterms.csv`, one row per charge and one column
 per Incoterm:
 
 ```csv
 code,label,stage,FCA,CPT,CIP,DAP,DDP
-TH,Terminal handling at origin,origin,seller,seller,seller,seller,seller
+TH,Terminal handling at origin,origin,buyer,seller,seller,seller,seller
 WT,Air freight,origin,buyer,seller,seller,seller,seller
 CH,Import customs clearance,arrival,buyer,buyer,buyer,buyer,seller
 ```
@@ -179,8 +186,9 @@ The build refuses to publish if the engine can quote a charge that has no row.
 
 Three lines carry no amount and exist so the Incoterm reads honestly:
 pre-carriage, on-carriage and import duties. A DAP quotation that silently
-omitted on-carriage would teach the wrong lesson. They show as *quoted
-separately* and link to the road haulier set in
+omitted on-carriage would teach the wrong lesson. They read **Not included**
+and say why — the airline does not sell road transport, and duties are settled
+with the customs authority — linking to the road haulier set in
 `config.json → partners.road_haulier`. Leave the `url` blank and the lines
 still appear, simply without a link.
 
