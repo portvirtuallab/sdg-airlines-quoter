@@ -253,7 +253,7 @@
      reads honestly — a DAP quotation that silently omitted on-carriage would
      teach the wrong lesson — carried at zero and marked as quoted elsewhere. */
   function infoLines(data, stage, incoterm) {
-    if (!incoterm) return [];
+    // A null Incoterm is allowed: see infoLines above.
     var partners = data.config.partners || {};
     var hauler = partners.road_haulier || {};
     var insurer = partners.insurer || {};
@@ -261,8 +261,14 @@
     return (data.incoterms || [])
       .filter(function (r) { return r.stage === stage; })
       .map(function (r) {
-        var party = r.parties[incoterm];
-        if (!party || party === "none") return null;
+        // With an Incoterm the line is skipped when it belongs to neither
+        // party. Without one — the arrival page — it still belongs on the
+        // quotation: only the question of who pays it goes unanswered, and
+        // a consignee reading destination charges needs to know the truck
+        // to their door is not among them.
+        var party = incoterm ? r.parties[incoterm] : null;
+        if (incoterm && (!party || party === "none")) return null;
+        if (!incoterm && r.code === "INS") return null;
 
         var who = null, why = "";
         if (r.code === "PRE" || r.code === "ONC") {
@@ -531,6 +537,7 @@
     customsRegime: customsRegime,
     customsApplies: customsApplies,
     partyFor: partyFor,
+    infoLinesFor: infoLines,
     distanceBetween: distanceBetween,
     formatMoney: formatMoney,
     round2: round2

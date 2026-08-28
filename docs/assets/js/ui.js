@@ -500,6 +500,10 @@
       a.lines = a.lines.map(function (l) {
         return { code: l.code, due: l.due, label: l.label, detail: l.detail, amount: E().round2(l.amount * fx) };
       });
+      // The truck to the consignee's door and the duty are destination costs
+      // this airline does not sell. A consignee reading arrival charges needs
+      // to see them named, exactly as the full quotation names them.
+      a.lines = a.lines.concat(E().infoLinesFor(DATA, "info_arrival", null));
       a.subtotal = E().round2(a.subtotal * fx);
       q = {
         reference: "SDG-ARR-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") +
