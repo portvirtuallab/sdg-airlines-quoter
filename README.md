@@ -123,10 +123,12 @@ well in class: 95 kg to Lisbon is rated as 100 kg and the shipment drops from
 **Rate class** — the quote shows the AWB rate class: **M** when the minimum
 charge applies, **N** for a normal rate below 100 kg, **Q** for a quantity rate.
 
-**Surcharges** — emissions by the kilometre, then X-ray screening, the airport
-surcharge and the customs cost as flat figures, all in `surcharges.csv`. Each
-can carry a `minimum`: screening is floored at 54.00, because putting a
-shipment through the machine costs much the same whatever its size.
+**Surcharges** — all in `surcharges.csv`, and each can carry a fixed `base`, a
+variable part by weight, distance or percentage, and a `minimum`. Emissions go
+by the kilometre; the airport surcharge and the customs cost are flat.
+Screening is 54.00 for the machine plus 0.003/kg on what goes through it,
+because the machine costs the same whatever its size and only the handling
+scales.
 
 **Dangerous goods** — on top of the higher handling and storage tariffs, a flat
 acceptance fee covering the first ten pieces and a rate on every piece beyond
@@ -202,10 +204,12 @@ exactly as it always did, so a student who only wants the destination figure
 does not have to build a whole quotation. Both pages call the same engine
 function, so the numbers agree to the cent.
 
-**CIP needs a rate.** CIP differs from CPT only by the insurance the seller
-takes out, and `config.json → insurance` ships at zero, so the line appears
-flagged and the two Incoterms cost the same. Set
-`pct_of_insured_value` to separate them.
+**Insurance under CIP** is not priced here either. The airline is not an
+insurer and its own liability is capped by weight, so CIP carries a line
+reading **Not included** that sends the reader to **TT Circle**, the Port
+Virtual Lab insurer, set in `config.json → partners.insurer`. CIP and CPT
+therefore cost the same on this quotation; the difference is an obligation,
+not a figure the airline can quote.
 
 ---
 

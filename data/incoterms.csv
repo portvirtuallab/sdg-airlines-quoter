@@ -8,7 +8,7 @@ WT,Air freight,origin,buyer,seller,seller,seller,seller
 ETS,Emissions trading scheme,origin,buyer,seller,seller,seller,seller
 XR,X-ray screening,origin,buyer,seller,seller,seller,seller
 AP,Airport surcharge,origin,buyer,seller,seller,seller,seller
-INS,Cargo insurance,origin,none,none,seller,none,none
+INS,Cargo insurance,info_origin,none,none,seller,none,none
 SD,Security at arrival,arrival,buyer,buyer,buyer,seller,seller
 TD,Terminal handling at destination,arrival,buyer,buyer,buyer,seller,seller
 DGD,Dangerous goods handling at destination,arrival,buyer,buyer,buyer,seller,seller

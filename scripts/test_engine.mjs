@@ -67,7 +67,7 @@ check("BCN-ALG minimum", E.findRoute(data, "BCN", "ALG").rate.min, 105);
 const sc = E.surchargeLines(data, { km: 2898, chargeableWeight: 500, freight: 1000, customs: true });
 const ets = sc.find(s => s.code === "ETS");
 check("ETS is charged per kilometre", ets.amount, Math.round(2898 * 0.009 * 100) / 100);
-check("screening is floored at its minimum", sc.find(s => s.code === "XR").amount, 54);
+check("screening is a base plus a rate on the weight", sc.find(s => s.code === "XR").amount, 54 + 500 * 0.003);
 check("the control fee is no longer quoted", sc.filter(s => s.code === "CT").length, 0);
 check("the peak season surcharge is no longer quoted", sc.filter(s => s.code === "PSS").length, 0);
 

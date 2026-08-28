@@ -195,7 +195,8 @@ def build():
             errors.append(f"{where}: basis {basis!r} is not one of flat, per_kg, per_km, percent_freight")
         surcharges.append({
             "code": (r.get("code") or "").strip(), "label": (r.get("label") or "").strip(),
-            "basis": basis, "amount": num(r, "amount", where),
+            "basis": basis, "base": num(r, "base", where),
+            "amount": num(r, "amount", where),
             "minimum": num(r, "minimum", where),
             "applies": (r.get("applies") or "always").strip(),
             "note": (r.get("note") or "").strip(),

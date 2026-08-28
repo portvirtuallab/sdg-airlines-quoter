@@ -101,16 +101,16 @@
     "at_destination": true,
     "note": "Charged at both ends, so a dangerous goods shipment of up to ten pieces carries 70.00 in total. Priced on the number of pieces, not on weight."
   },
-  "insurance": {
-    "pct_of_insured_value": 0,
-    "minimum": 0,
-    "note": "Applied on CIP only, on the weight charge plus the declared value of the goods. Both figures are zero until the programme sets its own rate, so the CIP insurance line shows at zero and is flagged."
-  },
   "partners": {
     "road_haulier": {
       "name": "Haulier Services",
       "url": "",
       "note": "Inland transport is quoted by this company, not by the airline. With the url blank the pre-carriage and on-carriage lines still appear, simply without a link."
+    },
+    "insurer": {
+      "name": "TT Circle",
+      "url": "https://www.pvl.one",
+      "note": "Cargo insurance under CIP is placed with this company, not with the airline. The quotation carries the line without an amount and sends the reader here."
     }
   },
   "quote": {

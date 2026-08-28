@@ -136,9 +136,6 @@
       amount: round2(25 * mawbs)
     });
 
-    var ins = insuranceLine(data, input.incoterm, fr.amount, input.insuredValue);
-    if (ins) lines.push(ins);
-
     return {
       origin: input.origin,
       destination: input.destination,
@@ -182,6 +179,11 @@
     return (data.surcharges || []).map(function (s) {
       var off = s.applies === "disabled" ||
                 (s.applies === "customs_required" && !ctx.customs);
+
+      // A surcharge may carry a fixed part and a variable one. Screening is
+      // the case: the machine costs what it costs whatever goes through it,
+      // and the rate on top only reflects the extra handling of a big load.
+      var fixed = Number(s.base) || 0;
       var amount = 0, basis = "";
       if (s.basis === "flat") { amount = s.amount; basis = "flat charge per shipment"; }
       else if (s.basis === "per_kg") {
@@ -193,6 +195,10 @@
       } else if (s.basis === "percent_freight") {
         amount = s.amount * ctx.freight;
         basis = (s.amount * 100).toFixed(1) + "% of the weight charge";
+      }
+      if (fixed) {
+        amount += fixed;
+        basis = fixed.toFixed(2) + " base + " + basis;
       }
       // A surcharge can carry a floor of its own, the way the freight rate
       // and the station charges do. Screening is the case that needs it: the
@@ -248,40 +254,38 @@
      teach the wrong lesson — carried at zero and marked as quoted elsewhere. */
   function infoLines(data, stage, incoterm) {
     if (!incoterm) return [];
-    var hauler = ((data.config.partners || {}).road_haulier) || {};
+    var partners = data.config.partners || {};
+    var hauler = partners.road_haulier || {};
+    var insurer = partners.insurer || {};
+
     return (data.incoterms || [])
       .filter(function (r) { return r.stage === stage; })
       .map(function (r) {
         var party = r.parties[incoterm];
         if (!party || party === "none") return null;
-        var road = r.code === "PRE" || r.code === "ONC";
+
+        var who = null, why = "";
+        if (r.code === "PRE" || r.code === "ONC") {
+          who = hauler;
+          why = "the airline does not sell road transport. Arrange it with " +
+                (hauler.name || "the road haulier") + ".";
+        } else if (r.code === "INS") {
+          who = insurer;
+          why = "the airline is not an insurer, and its own liability is capped by weight. " +
+                "Cover the value of the goods with " + (insurer.name || "an insurer") + ".";
+        } else {
+          why = "duties and taxes are settled directly with the customs authority " +
+                "of the importing country.";
+        }
+
         return {
           code: r.code, due: "X", label: r.label, party: party,
-          detail: road
-            ? "Not part of this quotation — the airline does not sell road transport. Arrange it with " + (hauler.name || "the road haulier") + "."
-            : "Not part of this quotation — duties and taxes are settled directly with the customs authority of the importing country.",
-          href: road ? (hauler.url || "") : "",
+          detail: "Not part of this quotation — " + why,
+          href: (who && who.url) || "",
           amount: 0, info: true
         };
       })
       .filter(Boolean);
-  }
-
-  function insuranceLine(data, incoterm, freight, insuredValue) {
-    if (partyFor(data, "INS", incoterm) === null) return null;
-    var cfg = data.config.insurance || {};
-    var pct = Number(cfg.pct_of_insured_value) || 0;
-    var min = Number(cfg.minimum) || 0;
-    var base = freight + (Number(insuredValue) || 0);
-    var amount = Math.max(min, pct * base);
-    return {
-      code: "INS", due: "C", label: "Cargo insurance",
-      detail: pct > 0
-        ? (pct * 100).toFixed(2) + "% of " + base.toFixed(2) + " (weight charge plus declared value)"
-        : "no rate configured — set config.insurance.pct_of_insured_value",
-      amount: round2(amount),
-      inactive: pct <= 0 && min <= 0
-    };
   }
 
   /* ── Dangerous goods ────────────────────────────────────────
