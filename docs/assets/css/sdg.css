@@ -207,10 +207,16 @@ a{color:inherit;text-decoration:none}
 .rc[data-c="M"]{background:var(--gold);color:#3A2703}
 
 /* ledger */
-.ledger{width:100%;border-collapse:collapse}
+.ledger-wrap{overflow-x:auto}
+.ledger{width:100%;border-collapse:collapse;min-width:min(100%,520px)}
 .ledger tr{border-bottom:1px solid var(--line)}
 .ledger td{padding:14px 30px;vertical-align:top}
-.ledger td:last-child{text-align:right;white-space:nowrap;width:1%}
+/* Only the money column may refuse to wrap. A cell spanning both columns —
+   the band headings and the Incoterm note — is also the last td in its row,
+   and inheriting nowrap turned the longest note into one unbreakable line
+   that stretched the table until the amounts sat off-screen. */
+.ledger td:last-child:not([colspan]){text-align:right;white-space:nowrap;width:1%}
+.ledger td[colspan]{white-space:normal;width:auto;text-align:left}
 .ledger tbody tr:hover{background:var(--wash)}
 .band td{background:var(--wash);padding:10px 30px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
 .band td,.band tr:hover td{background:var(--wash)}
