@@ -254,11 +254,20 @@
       var ii = q.incotermInfo || {};
       body += '<tr class="band"><td colspan="2">' + esc(q.incoterm) +
         ' — delivered at ' + esc(ii.place || "") + '</td></tr>';
+      // A subtotal that quietly left out the unpriced lines would read as the
+      // whole of that party's cost. Under DDP all three fall to the seller,
+      // so the figure is furthest from the truth exactly where it matters.
+      var elsewhere = function (who) {
+        var n = q.departure.lines.concat(q.arrival.lines)
+          .filter(function (l) { return l.info && l.party === who; }).length;
+        return n ? '<div class="c-detail">plus ' + n +
+          ' item(s) marked Not included, quoted elsewhere</div>' : '';
+      };
       body += '<tr class="split"><td><span class="who seller">Seller</span>' +
-        '<span class="c-name">Borne by the seller</span></td>' +
+        '<span class="c-name">Borne by the seller</span>' + elsewhere("seller") + '</td>' +
         '<td><span class="amt">' + money(q.sellerTotal) + '</span></td></tr>';
       body += '<tr class="split"><td><span class="who buyer">Buyer</span>' +
-        '<span class="c-name">Borne by the buyer</span></td>' +
+        '<span class="c-name">Borne by the buyer</span>' + elsewhere("buyer") + '</td>' +
         '<td><span class="amt">' + money(q.buyerTotal) + '</span></td></tr>';
       if (ii.note) {
         body += '<tr class="icnote"><td colspan="2">' + esc(ii.note) + '</td></tr>';

@@ -1,5 +1,5 @@
 code,label,basis,base,amount,minimum,applies,note
 ETS,Emissions trading scheme,per_km,0,0.009,0,always,derived from 223 historical quotations
-XR,X-ray screening,per_kg,54,0.003,0,always,fixed fee for the machine plus a rate on the weight put through it
+XR,X-ray screening,per_kg,54,0.03,0,always,fixed fee for the machine plus a rate on the weight put through it
 AP,Airport surcharge,flat,0,20,0,always,
 CC,Customs cost,flat,0,39,0,customs_required,

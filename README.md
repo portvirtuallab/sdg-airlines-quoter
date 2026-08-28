@@ -126,7 +126,7 @@ charge applies, **N** for a normal rate below 100 kg, **Q** for a quantity rate.
 **Surcharges** — all in `surcharges.csv`, and each can carry a fixed `base`, a
 variable part by weight, distance or percentage, and a `minimum`. Emissions go
 by the kilometre; the airport surcharge and the customs cost are flat.
-Screening is 54.00 for the machine plus 0.003/kg on what goes through it,
+Screening is 54.00 for the machine plus 0.03/kg on what goes through it,
 because the machine costs the same whatever its size and only the handling
 scales.
 
