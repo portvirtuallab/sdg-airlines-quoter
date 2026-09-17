@@ -172,8 +172,9 @@ a{color:inherit;text-decoration:none}
 .doc-lane{font-size:44px;font-weight:700;letter-spacing:-.04em;line-height:1.05;margin-top:18px}
 .doc-lane .arrow{color:var(--blue);margin:0 10px;font-weight:300}
 .doc-cities{font-size:13px;color:var(--ink-3);margin-top:6px}
-.doc-ref{min-width:210px}
-.doc-ref dl{display:grid;grid-template-columns:auto auto;gap:5px 16px;justify-content:end;text-align:right}
+/* The markup is <dl class="doc-ref">, so a rule for ".doc-ref dl" matched
+   nothing and the pairs had been stacking, nine rows deep, all along. */
+.doc-ref{min-width:210px;display:grid;grid-template-columns:auto auto;gap:5px 16px;justify-content:end;text-align:right}
 .doc-ref dt{font-size:11px;color:var(--ink-3)}
 .doc-ref dd{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:500}
 .tools{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
@@ -450,7 +451,7 @@ a.c-name.out::after{content:'\2197';font-size:11px;margin-left:3px;text-decorati
   .map-stn text{display:none}
   .map-stn.hub text,.map-stn.on text{display:block;font-size:28px}
   .doc-top{grid-template-columns:1fr}
-  .doc-ref dl{justify-content:start;text-align:left}
+  .doc-ref{justify-content:start;text-align:left}
   .tools{justify-content:flex-start}
   .doc-lane{font-size:33px}
   .rateline{overflow-x:auto}
@@ -466,24 +467,89 @@ a.c-name.out::after{content:'\2197';font-size:11px;margin-left:3px;text-decorati
   .ledger td,.band td,.sub-row td{padding-left:20px;padding-right:20px}
 }
 
-/* ── printed quotation ───────────────────────────────────────── */
+/* ── printed quotation ─────────────────────────────────────────
+   One sheet. A quotation that runs to four pages does not get filed,
+   it gets skimmed, and the screen layout — built to be scrolled —
+   printed to exactly that. So the paper version is its own design:
+   the carrier bar comes back so the sheet is identifiably SDG
+   Airlines, everything tightens, and the charges run in two columns
+   because that is where the height was going.                      */
 @media print{
-  @page{size:A4;margin:13mm 12mm}
-  .carrier,.masthead,.box,.execute,.foot,.tools,.send,.alert{display:none!important}
+  @page{size:A4;margin:9mm 10mm}
+  .masthead,.box,.execute,.foot,.tools,.send,.alert,.gate{display:none!important}
   .shell{padding:0;max-width:none}
-  html,body{background:#fff;color:#000;font-size:10pt}
+  html,body{background:#fff;color:#000;font-size:8pt;line-height:1.35}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* the masthead of the printed sheet */
+  .carrier{display:block!important;position:static;background:#0D0F12!important;height:auto;border:none}
+  .carrier-in{max-width:none;padding:5pt 9pt;height:auto;gap:8pt}
+  .carrier .mark{font-size:12pt;color:#fff!important}
+  .carrier .prefix{width:17pt;height:17pt;border-radius:3pt;font-size:7.5pt;background:#0B8FD6!important;color:#fff!important}
+  .carrier-role{font-size:7.5pt;padding-left:8pt}
+  .carrier-end .flag{font-size:6.5pt;padding:2pt 6pt}
+
   .doc{display:block!important}
-  .doc-sheet{box-shadow:none;border:1pt solid #16191D;border-radius:0}
-  .doc-top{background:#F0F4F7!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16pt}
-  .doc-lane{font-size:28pt}
-  .itin,.rc,.c-code{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .rateline td{font-size:13pt;padding-bottom:12pt}
-  .ledger td{padding:7pt 16pt}
-  .ledger tr{break-inside:avoid}
-  .band td,.sub-row td{background:#F0F2F5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .grand{background:#073F63!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:16pt}
-  .grand-v{background:#0B8FD6!important;font-size:21pt}
-  .terms-x{max-width:none;font-size:8.5pt}
-  .sign{display:block}
+  .doc-sheet{box-shadow:none;border:.7pt solid #C9D3DB;border-radius:0;border-top:none}
+
+  .doc-top{background:#F4F7F9!important;color:#000!important;padding:7pt 9pt;gap:10pt}
+  .doc-carrier{font-size:9pt}
+  .doc-kind{font-size:6.5pt;margin-top:1pt}
+  .doc-lane{font-size:17pt;margin-top:4pt}
+  .doc-cities{font-size:7pt;margin-top:1pt}
+  /* nine facts stacked nine rows deep; three pairs abreast is three rows */
+  .doc-ref{min-width:0;grid-template-columns:auto auto auto auto auto auto;gap:1pt 7pt}
+  .doc-ref dt,.doc-ref dd{font-size:6.3pt;white-space:nowrap}
+
+  .itin-cap{padding:4pt 9pt;font-size:7pt}
+  /* each flight on one line: number, the hop, the aircraft */
+  .itin-leg{padding:1.5pt 9pt;grid-template-columns:40pt 1fr auto;gap:0 8pt;align-items:baseline}
+  .itin-fl{grid-row:auto;font-size:6.8pt}
+  .itin-od{font-size:7pt}
+  .itin-ac{font-size:6.2pt;text-align:right}
+  .itin-note{padding:2pt 9pt;font-size:6pt}
+
+  .rateline-cap{padding:4pt 9pt 1pt;font-size:6.5pt}
+  .rateline th{padding:2pt 6pt;font-size:6pt}
+  .rateline td{font-size:9pt;padding:1.5pt 6pt 3.5pt}
+  .rateline th:first-child,.rateline td:first-child{padding-left:9pt}
+  .rateline th:last-child,.rateline td:last-child{padding-right:9pt}
+
+  .goods{padding:4pt 9pt 5pt}
+  .goods-cap{font-size:6.5pt;margin-bottom:2pt}
+  .goods-row{padding:1.5pt 0;gap:7pt}
+  .goods-d{font-size:7.5pt;min-width:0}
+  .goods-hs,.goods-q{font-size:6.5pt;padding:0 4pt}
+
+  /* the charges, in two columns — this is what buys the page back */
+  .ledger-wrap{columns:2;column-gap:9pt;padding:0 9pt 4pt}
+  .ledger{display:block;min-width:0}
+  .ledger tbody{display:block}
+  .ledger tr{display:grid;grid-template-columns:1fr auto;gap:6pt;
+    break-inside:avoid;padding:1.4pt 0;border-bottom:.4pt solid #E7ECF0}
+  .ledger td{display:block;padding:0;border:none}
+  .ledger td:last-child:not([colspan]){text-align:right}
+  .ledger td[colspan]{grid-column:1/-1}
+  .band td{background:transparent!important;padding:4pt 0 1pt;font-size:6pt;border-top:.7pt solid #0D0F12}
+  .c-code{font-size:6pt;padding:0 3pt;margin-right:4pt}
+  .c-name{font-size:7.5pt}
+  .c-detail{font-size:6pt;padding-left:0;margin-top:.5pt;color:#5B646E}
+  .amt{font-size:8pt}
+  .amt.none,.amt.measure{font-size:6.5pt}
+  .who{font-size:5.5pt;padding:0 3pt;margin-left:4pt}
+  .sub-row td{background:transparent!important;font-size:7.5pt}
+  .sub-row .amt{font-size:8.5pt}
+  .icnote td{font-size:6pt;padding-bottom:3pt}
+  .ledger tbody tr:hover{background:transparent}
+
+  .grand{background:#073F63!important;color:#fff!important;padding:4.5pt 9pt;gap:10pt}
+  .grand-k{font-size:9pt}
+  .grand-sub{font-size:6.5pt;margin-top:0}
+  .grand-v{background:#0B8FD6!important;font-size:12pt;padding:3pt 9pt;border-radius:3pt}
+
+  .terms{padding:4pt 9pt}
+  .terms-k{font-size:6pt;margin-bottom:2pt}
+  .terms-x{max-width:none;font-size:6pt;line-height:1.4}
+  .sign{display:block;width:140pt;margin-top:7pt;padding-top:2.5pt;font-size:6pt}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
