@@ -202,6 +202,27 @@ def build():
             "note": (r.get("note") or "").strip(),
         })
 
+    # -- Emissions -------------------------------------------------
+    # One band per row, so the GLEC split between short and long haul can be
+    # made by adding a row rather than by editing the engine.
+    emissions = []
+    for r in read("tariffs/emissions.csv"):
+        where = f"emissions[{r.get('band_from_km')}-{r.get('band_to_km')}]"
+        emissions.append({
+            "from": num(r, "band_from_km", where),
+            "to": num(r, "band_to_km", where),
+            "gPerTonneKm": num(r, "g_co2e_per_tonne_km", where),
+            "source": (r.get("source") or "").strip(),
+        })
+    emissions.sort(key=lambda b: b["from"])
+    if not emissions:
+        errors.append("tariffs/emissions.csv has no bands")
+    for a, b in zip(emissions, emissions[1:]):
+        if b["from"] > a["to"]:
+            errors.append(f"emissions: nothing covers {a['to']}-{b['from']} km")
+    if emissions and emissions[0]["from"] > 0:
+        errors.append("emissions: no band starts at 0 km")
+
     # -- Incoterms: who bears each charge --------------------------
     # One row per charge, one column per Incoterm. Kept as data so the
     # allocation can be argued over and corrected without touching code.
@@ -253,6 +274,7 @@ def build():
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "config": config,
         "incoterms": incoterms,
+        "emissions": emissions,
         "airports": [airports[c] for c in sorted(airports)],
         "network": {
             "services": list(services.values()),

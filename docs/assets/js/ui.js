@@ -152,10 +152,10 @@
       ? '<a class="c-name out" href="' + esc(l.href) + '" target="_blank" rel="noopener">' +
         esc(l.label) + '</a>'
       : '<span class="c-name">' + esc(l.label) + '</span>';
-    var value = l.info
-      ? '<span class="amt none">Not included</span>'
+    var value = l.measure ? '<span class="amt measure">' + esc(l.measure) + '</span>'
+      : l.info ? '<span class="amt none">Not included</span>'
       : '<span class="amt">' + money(l.amount) + '</span>';
-    var cls = [l.inactive ? "off" : "", l.info ? "info" : ""].join(" ").trim();
+    var cls = [l.inactive ? "off" : "", (l.info || l.measure) ? "info" : ""].join(" ").trim();
     return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td><span class="c-code">' + esc(l.code) + '</span>' +
       name + pill +
       '<div class="c-detail">' + esc(l.detail) + '</div></td>' +
@@ -216,7 +216,14 @@
       $("itin").innerHTML =
         '<div class="itin-cap">Routing \u00b7 ' + q.itinerary.jumps + ' flight(s) \u00b7 ' +
         Math.round(q.itinerary.transitSeconds / 3600) + ' h total \u00b7 ' +
-        Math.round(q.itinerary.km) + ' km</div>' +
+        Math.round(q.itinerary.km) + ' km' +
+        // The flown kilometres and the footprint sit together, but they are not
+        // the same distance: the footprint is rated on the great circle.
+        (q.emissions ? ' \u00b7 <span class="itin-co2">' +
+          (q.emissions.kgCO2e >= 1000
+            ? E().round2(q.emissions.kgCO2e / 1000) + ' t'
+            : q.emissions.kgCO2e + ' kg') + ' CO\u2082e</span>' : '') +
+        '</div>' +
         q.itinerary.legs.map(function (l) {
           return '<div class="itin-leg">' +
             '<div class="itin-fl">' + esc(l.flightNumber || l.service) + '</div>' +

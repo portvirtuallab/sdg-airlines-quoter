@@ -140,6 +140,31 @@ dangerous_goods`.
 **One air waybill** — every quotation is a single MAWB, so the charges that
 used to be multiplied by the number of waybills are quoted once.
 
+**Carbon footprint** — the GLEC Framework calculation, shown beside the
+kilometres and again as a line of its own:
+
+```
+CO2e (kg) = gross mass (t) × great-circle distance (km) × intensity (g CO2e/t·km) ÷ 1000
+```
+
+Two things the framework is explicit about, and both are worth a minute in
+class. The mass is the **actual gross weight, not the chargeable weight** —
+*"use the actual consignment mass, not proxies like chargeable weight"* —
+because an aircraft burns fuel on the kilos it lifts, not on the kilos that get
+invoiced. And the distance is the **great circle**, not the kilometres the
+rotation happens to fly: BCN to Hong Kong is quoted over 12,439 flown
+kilometres but its footprint is rated on 10,067.
+
+The intensity lives in `data/tariffs/emissions.csv`, one row per distance band,
+and the quotation prints the source next to the figure. It ships with the GLEC
+default of 800 g CO2e/t·km well-to-wake; the framework notes this can run from
+400 to 1,200 depending on aircraft and haul, so split the band in two when you
+have the GLEC Module 2 figures.
+
+**It is not a charge.** `ETS` is a cost of 0.009/km; the footprint is a
+measurement of the shipment. They sat close enough to be confused for each
+other, so the footprint now reads in kg CO2e rather than in money.
+
 **Storage** — free days first, then days 1–20 at one rate and day 21 onward at
 a higher one, per 100 kg or part thereof, plus the fee per MAWB. All three
 families come straight from the original workbook: general cargo, cool chamber

@@ -84,6 +84,23 @@ const genPieces = E.arrivalQuote(data, {
 });
 check("general cargo carries no DG fee", genPieces.lines.filter(l => l.code === "DGD").length, 0);
 
+// -- Case 10: the carbon footprint
+// GLEC: actual gross mass, great-circle distance, and it is not a charge.
+const co2 = E.emissions(data, 1000, 10067);
+check("1 t over 10067 km at 800 g/t-km", co2.kgCO2e, 1 * 10067 * 800 / 1000);
+const co2q = E.freightQuote(data, {
+  origin: "BCN", destination: "CAI", chargeableWeight: 500, grossWeight: 480,
+  pieces: 6, mawbs: 1, cargoType: "GEN"
+});
+check("rated on the gross weight, not the chargeable one", co2q.emissions.grossWeightKg, 480);
+check("the footprint adds nothing to the subtotal",
+  E.round2(co2q.lines.filter(l => l.code !== "CO2").reduce((s, l) => s + l.amount, 0)),
+  co2q.subtotal);
+const arrNoCo2 = E.arrivalQuote(data, {
+  airport: "BCN", chargeableWeight: 500, mawbs: 1, cargoType: "GEN", customs: true, storageDays: 0
+});
+check("arrival charges carry no footprint", arrNoCo2.lines.filter(l => l.code === "CO2").length, 0);
+
 // -- Case 9: the Incoterm moves the line between the parties, never the total
 const byIncoterm = ["FCA", "CPT", "CIP", "DAP", "DDP"].map(ic => E.fullQuote(data, {
   origin: "BCN", destination: "CAI", chargeableWeight: 500, grossWeight: 480, pieces: 6,

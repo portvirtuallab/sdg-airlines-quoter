@@ -128,6 +128,13 @@
     var dgo = dangerousGoodsLine(data, input.cargoType, input.pieces, "origin");
     if (dgo) lines.push(dgo);
 
+    // The great circle, deliberately, even when the rotation flies further.
+    var co2 = emissions(data,
+      Number(input.grossWeight) || cw,
+      distanceBetween(data, input.origin, input.destination));
+    var co2line = emissionsLine(co2);
+    if (co2line) lines.push(co2line);
+
     lines.push({
       code: "AW",
       due: "A",
@@ -150,6 +157,7 @@
         total: fr.amount
       },
       transitDays: rate.transit || null,
+      emissions: co2,
       lines: lines,
       subtotal: round2(lines.reduce(function (s, l) { return s + l.amount; }, 0))
     };
@@ -323,6 +331,57 @@
     };
   }
 
+  /* ── Emissions ──────────────────────────────────────────────
+     GLEC Framework: mass in tonnes × great-circle kilometres × an
+     intensity in grams of CO2e per tonne-kilometre, well-to-wake.
+
+     Two things the framework is explicit about and which are easy to get
+     wrong. The mass is the ACTUAL gross weight, not the chargeable
+     weight — "use the actual consignment mass, not proxies like
+     chargeable weight" — because an aircraft burns fuel on the kilos it
+     lifts, not on the kilos that get invoiced. And the distance is the
+     great circle between the two airports, not the kilometres the
+     rotation happens to fly.
+
+     This is not a charge. It is a figure about the shipment, and the
+     quotation shows it as one.                                        */
+  function emissions(data, grossWeightKg, km) {
+    var bands = data.emissions || [];
+    var kg = Number(grossWeightKg) || 0;
+    var d = Number(km) || 0;
+    if (!bands.length || kg <= 0 || d <= 0) return null;
+
+    var band = null;
+    for (var i = 0; i < bands.length; i++) {
+      if (d >= bands[i].from && d <= bands[i].to) { band = bands[i]; break; }
+    }
+    if (!band) band = bands[bands.length - 1];
+
+    var tonnes = kg / 1000;
+    return {
+      kgCO2e: round2(tonnes * d * band.gPerTonneKm / 1000),
+      tonneKm: round2(tonnes * d),
+      grossWeightKg: kg,
+      km: Math.round(d),
+      gPerTonneKm: band.gPerTonneKm,
+      source: band.source
+    };
+  }
+
+  function emissionsLine(e) {
+    if (!e) return null;
+    return {
+      code: "CO2",
+      due: "X",
+      label: "Carbon footprint of the flight",
+      detail: e.grossWeightKg + " kg gross × " + e.km + " km great circle × " +
+        e.gPerTonneKm + " g/t·km · " + e.source +
+        " · rated on the actual weight, not the chargeable one",
+      measure: (e.kgCO2e >= 1000 ? round2(e.kgCO2e / 1000) + " t" : e.kgCO2e + " kg") + " CO₂e",
+      amount: 0
+    };
+  }
+
   function thcFamily(data, cargoTypeId) {
     var t = (data.config.cargo_types || []).filter(function (c) { return c.id === cargoTypeId; })[0];
     return t ? t.thc : "gen";
@@ -462,7 +521,7 @@
     function convert(block, stage) {
       var lines = block.lines.map(function (l) {
         return { code: l.code, due: l.due, label: l.label, detail: l.detail,
-                 inactive: l.inactive, info: l.info, href: l.href,
+                 inactive: l.inactive, info: l.info, href: l.href, measure: l.measure,
                  party: l.party || partyFor(data, l.code, ic),
                  amount: round2(l.amount * fx) };
       });
@@ -488,6 +547,7 @@
       origin: input.origin,
       destination: input.destination,
       transitDays: dep.transitDays,
+      emissions: dep.emissions,
       chargeableWeight: dep.chargeableWeight,
       billedWeight: dep.billedWeight,
       rateLine: (function () {
@@ -537,6 +597,7 @@
     customsRegime: customsRegime,
     customsApplies: customsApplies,
     partyFor: partyFor,
+    emissions: emissions,
     infoLinesFor: infoLines,
     distanceBetween: distanceBetween,
     formatMoney: formatMoney,
