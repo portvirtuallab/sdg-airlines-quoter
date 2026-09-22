@@ -368,7 +368,10 @@
       kgCO2e: round2(tonnes * d * band.gPerTonneKm / 1000),
       tonneKm: round2(tonnes * d),
       grossWeightKg: kg,
-      km: Math.round(d),
+      // The distance as given. Rounding it here cost nothing while the
+      // distance table held whole numbers and started lying the moment it
+      // held decimals; the rounding belongs in the sentence, not the data.
+      km: d,
       gPerTonneKm: band.gPerTonneKm,
       source: band.source
     };
@@ -380,7 +383,7 @@
       code: "CO2",
       due: "X",
       label: "Carbon footprint of the flight",
-      detail: e.grossWeightKg + " kg gross × " + e.km +
+      detail: e.grossWeightKg + " kg gross × " + Math.round(e.km) +
         " km flown, the great circle of every sector added up × " +
         e.gPerTonneKm + " g/t·km · " + e.source +
         " · rated on the actual weight, not the chargeable one",
