@@ -93,6 +93,22 @@ const co2q = E.freightQuote(data, {
   pieces: 6, mawbs: 1, cargoType: "GEN"
 });
 check("rated on the gross weight, not the chargeable one", co2q.emissions.grossWeightKg, 480);
+
+// The routed distance wins over the direct great circle. Beirut to Bangkok
+// connects three times: 6,862 km direct against 14,416 km actually flown, so
+// taking the shortcut halved the footprint.
+const routed = E.freightQuote(data, {
+  origin: "BEY", destination: "BKK", chargeableWeight: 100, grossWeight: 100,
+  pieces: 1, mawbs: 1, cargoType: "GEN", distanceKm: 14416
+});
+check("the routed distance is used when it is known", routed.emissions.km, 14416);
+check("and the footprint follows it", routed.emissions.kgCO2e, 0.1 * 14416 * 800 / 1000);
+const noRoute = E.freightQuote(data, {
+  origin: "BEY", destination: "BKK", chargeableWeight: 100, grossWeight: 100,
+  pieces: 1, mawbs: 1, cargoType: "GEN"
+});
+check("the direct great circle only as a fallback",
+  noRoute.emissions.km, E.distanceBetween(data, "BEY", "BKK"));
 check("the footprint adds nothing to the subtotal",
   E.round2(co2q.lines.filter(l => l.code !== "CO2").reduce((s, l) => s + l.amount, 0)),
   co2q.subtotal);

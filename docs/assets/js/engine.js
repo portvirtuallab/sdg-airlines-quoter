@@ -128,10 +128,11 @@
     var dgo = dangerousGoodsLine(data, input.cargoType, input.pieces, "origin");
     if (dgo) lines.push(dgo);
 
-    // The great circle, deliberately, even when the rotation flies further.
+    // The routed distance when the itinerary is known — it is the sum of each
+    // sector's great circle — and the direct great circle only as a fallback.
     var co2 = emissions(data,
       Number(input.grossWeight) || cw,
-      distanceBetween(data, input.origin, input.destination));
+      Number(input.distanceKm) || distanceBetween(data, input.origin, input.destination));
     var co2line = emissionsLine(co2);
     if (co2line) lines.push(co2line);
 
@@ -332,16 +333,21 @@
   }
 
   /* ── Emissions ──────────────────────────────────────────────
-     GLEC Framework: mass in tonnes × great-circle kilometres × an
-     intensity in grams of CO2e per tonne-kilometre, well-to-wake.
+     GLEC Framework: mass in tonnes × kilometres × an intensity in grams
+     of CO2e per tonne-kilometre, well-to-wake.
 
-     Two things the framework is explicit about and which are easy to get
-     wrong. The mass is the ACTUAL gross weight, not the chargeable
-     weight — "use the actual consignment mass, not proxies like
-     chargeable weight" — because an aircraft burns fuel on the kilos it
-     lifts, not on the kilos that get invoiced. And the distance is the
-     great circle between the two airports, not the kilometres the
-     rotation happens to fly.
+     The mass is the ACTUAL gross weight, not the chargeable weight —
+     "use the actual consignment mass, not proxies like chargeable
+     weight" — because an aircraft burns fuel on the kilos it lifts, not
+     on the kilos that get invoiced.
+
+     The distance is the one the cargo is actually flown: the great
+     circle of every sector it sits through, added up. ISO 14083 builds a
+     footprint per transport chain element and sums them, and the direct
+     great circle between the first and last airport is only the right
+     answer when the routing is unknown. Here it is known, and taking the
+     shortcut understates a connecting shipment badly — Beirut to Bangkok
+     is 6,862 km direct against 14,416 km actually flown.
 
      This is not a charge. It is a figure about the shipment, and the
      quotation shows it as one.                                        */
@@ -374,7 +380,8 @@
       code: "CO2",
       due: "X",
       label: "Carbon footprint of the flight",
-      detail: e.grossWeightKg + " kg gross × " + e.km + " km great circle × " +
+      detail: e.grossWeightKg + " kg gross × " + e.km +
+        " km flown, the great circle of every sector added up × " +
         e.gPerTonneKm + " g/t·km · " + e.source +
         " · rated on the actual weight, not the chargeable one",
       measure: (e.kgCO2e >= 1000 ? round2(e.kgCO2e / 1000) + " t" : e.kgCO2e + " kg") + " CO₂e",

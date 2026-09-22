@@ -144,16 +144,21 @@ used to be multiplied by the number of waybills are quoted once.
 kilometres and again as a line of its own:
 
 ```
-CO2e (kg) = gross mass (t) × great-circle distance (km) × intensity (g CO2e/t·km) ÷ 1000
+CO2e (kg) = gross mass (t) × distance flown (km) × intensity (g CO2e/t·km) ÷ 1000
 ```
 
-Two things the framework is explicit about, and both are worth a minute in
-class. The mass is the **actual gross weight, not the chargeable weight** —
-*"use the actual consignment mass, not proxies like chargeable weight"* —
-because an aircraft burns fuel on the kilos it lifts, not on the kilos that get
-invoiced. And the distance is the **great circle**, not the kilometres the
-rotation happens to fly: BCN to Hong Kong is quoted over 12,439 flown
-kilometres but its footprint is rated on 10,067.
+The mass is the **actual gross weight, not the chargeable weight** — *"use the
+actual consignment mass, not proxies like chargeable weight"* — because an
+aircraft burns fuel on the kilos it lifts, not on the kilos that get invoiced.
+Worth a minute in class: the same shipment carries one weight for invoicing and
+another for emitting.
+
+The distance is **the one the cargo is actually flown**: the great circle of
+every sector it sits through, added up. ISO 14083 builds a footprint per
+transport chain element and sums them, so the direct great circle between the
+first and last airport is only right when the routing is unknown. Beirut to
+Bangkok connects three times — 6,862 km direct against **14,416 km flown**, and
+the shortcut halves the answer.
 
 The intensity lives in `data/tariffs/emissions.csv`, one row per distance band,
 and the quotation prints the source next to the figure. It ships with the GLEC

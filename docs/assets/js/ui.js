@@ -217,8 +217,7 @@
         '<div class="itin-cap">Routing \u00b7 ' + q.itinerary.jumps + ' flight(s) \u00b7 ' +
         Math.round(q.itinerary.transitSeconds / 3600) + ' h total \u00b7 ' +
         Math.round(q.itinerary.km) + ' km' +
-        // The flown kilometres and the footprint sit together, but they are not
-        // the same distance: the footprint is rated on the great circle.
+        // Both are rated on the same distance now, so they belong side by side.
         (q.emissions ? ' \u00b7 <span class="itin-co2">' +
           (q.emissions.kgCO2e >= 1000
             ? E().round2(q.emissions.kgCO2e / 1000) + ' t'
